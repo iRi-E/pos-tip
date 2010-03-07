@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.0.1")
+(defconst pos-tip-version "0.0.1.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -94,6 +94,7 @@ If FRAME is omitted, use selected-frame."
       (call-process shell-file-name nil t nil shell-command-switch
 		    (concat "xwininfo -id " (frame-parameter frame 'window-id)))
       (goto-char (point-min))
+      (search-forward "\n  Absolute")
       (setq pos-tip-saved-frame-coordinates
 	    (cons (progn (string-to-number (buffer-substring-no-properties
 					    (search-forward "X: ")
