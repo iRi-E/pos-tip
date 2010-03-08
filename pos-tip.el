@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.0.2")
+(defconst pos-tip-version "0.0.3")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -50,6 +50,10 @@
 ;;
 
 ;;; History:
+;; 2010-03-08  S. Irie
+;;         * Bug fix
+;;         * Version 0.0.3
+;;
 ;; 2010-03-08  S. Irie
 ;;         * Modified to move out mouse pointer
 ;;         * Version 0.0.2
@@ -163,33 +167,34 @@ in FRAME."
   (let* ((mpos (mouse-pixel-position))
 	 (mframe (pop mpos))
 	 (mx (car mpos))
-	 (my (cdr mpos))
-	 (large-number (+ (x-display-pixel-width) (x-display-pixel-height)))
-	 (dl (if (> left 2)
-		 (1+ (- mx left))
-	       large-number))
-	 (dr (if (< (1+ right) (x-display-pixel-width))
-		 (- right mx)
-	       large-number))
-	 (dt (if (> top 2)
-		 (1+ (- my top))
-	       large-number))
-	 (db (if (< (1+ bottom) (x-display-pixel-height))
-		 (- bottom my)
-	       large-number))
-	 (d (min dl dr dt db)))
-    (when (and mpos
-	       (eq (or frame (selected-frame)) mframe)
-	       (> d -2))
-      (cond
-       ((= d dl)
-	(set-mouse-pixel-position mframe (- left 2) my))
-       ((= d dr)
-	(set-mouse-pixel-position mframe (1+ right) my))
-       ((= d dt)
-	(set-mouse-pixel-position mframe mx (- top 2)))
-       (t
-	(set-mouse-pixel-position mframe mx (1+ bottom)))))))
+	 (my (cdr mpos)))
+    (when (numberp mx)
+      (let* ((large-number (+ (x-display-pixel-width) (x-display-pixel-height)))
+	     (dl (if (> left 2)
+		     (1+ (- mx left))
+		   large-number))
+	     (dr (if (< (1+ right) (x-display-pixel-width))
+		     (- right mx)
+		   large-number))
+	     (dt (if (> top 2)
+		     (1+ (- my top))
+		   large-number))
+	     (db (if (< (1+ bottom) (x-display-pixel-height))
+		     (- bottom my)
+		   large-number))
+	     (d (min dl dr dt db)))
+	(when (and mpos
+		   (eq (or frame (selected-frame)) mframe)
+		   (> d -2))
+	  (cond
+	   ((= d dl)
+	    (set-mouse-pixel-position mframe (- left 2) my))
+	   ((= d dr)
+	    (set-mouse-pixel-position mframe (1+ right) my))
+	   ((= d dt)
+	    (set-mouse-pixel-position mframe mx (- top 2)))
+	   (t
+	    (set-mouse-pixel-position mframe mx (1+ bottom)))))))))
 
 (defun pos-tip-show-no-propertize
   (string &optional tip-color pos window timeout pixel-width pixel-height frame-coordinates)
