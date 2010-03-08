@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.0.4.3")
+(defconst pos-tip-version "0.0.4.4")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -243,9 +243,11 @@ See `pos-tip-show' for details."
 	 (rx (- ax (car pos-tip-saved-frame-coordinates)))
 	 (ry (- ay (cdr pos-tip-saved-frame-coordinates)))
 	 (fg (or (car-safe tip-color)
-		 (face-attribute (or tip-color 'pos-tip) :foreground)))
+		 (face-attribute (or (and (facep tip-color) tip-color)
+				     'pos-tip) :foreground)))
 	 (bg (or (cdr-safe tip-color)
-		 (face-attribute (or tip-color 'pos-tip) :background)))
+		 (face-attribute (or (and (facep tip-color) tip-color)
+				     'pos-tip) :background)))
 	 (frame (window-frame (or window (selected-window))))
 	 (x-max-tooltip-size
 	  (cons (or (and pixel-width
