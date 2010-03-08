@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.0.1.1")
+(defconst pos-tip-version "0.0.1.2")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -200,8 +200,7 @@ See `pos-tip-show' for details."
 			    (+ (frame-char-height frame)
 			       (or (default-value 'line-spacing) 0))))
 		     (cdr x-max-tooltip-size)))))
-    (x-show-tip string
-		(window-frame (or window (selected-window)))
+    (x-show-tip string frame
 		`((border-width . ,pos-tip-border-width)
 		  (internal-border-width . ,pos-tip-internal-border-width)
 		  (left . ,ax)
