@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.0.3")
+(defconst pos-tip-version "0.0.3.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -94,7 +94,10 @@
   "Return the pixel coordinates of FRAME as a cons cell (LEFT . TOP),
 which are relative to top left corner of screen.
 
-If FRAME is omitted, use selected-frame."
+If FRAME is omitted, use selected-frame.
+
+Users can also get the frame coordinates by referring the variable
+`pos-tip-saved-frame-coordinates' just after calling this function."
   (with-current-buffer (get-buffer-create "*xwininfo*")
     (let ((case-fold-search nil))
       (buffer-disable-undo)
