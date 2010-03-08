@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.0.1.3")
+(defconst pos-tip-version "0.0.2")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -50,6 +50,10 @@
 ;;
 
 ;;; History:
+;; 2010-03-08  S. Irie
+;;         * Modified to move out mouse pointer
+;;         * Version 0.0.2
+;;
 ;; 2010-03-07  S. Irie
 ;;         * First release
 ;;         * Version 0.0.1

@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip, Dictionary
 
-(defconst sdic-inline-pos-tip-version "0.0.1.1")
+(defconst sdic-inline-pos-tip-version "0.0.2")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -46,6 +46,10 @@
 ;;
 
 ;;; History:
+;; 2010-03-08  S. Irie
+;;         * Added options to use substitutive functions in non-X frame
+;;         * Version 0.0.2
+;;
 ;; 2010-03-07  S. Irie
 ;;         * First release
 ;;         * Version 0.0.1
@@ -89,11 +93,11 @@ See `pos-tip-show' for details.")
 
 (defvar sdic-inline-pos-tip-subst-func-auto
   'sdic-inline-display-minibuffer
-  "Function used as substitute for auto-popup in text-only terminal.")
+  "Function used as substitute for auto-popup in non-X frame.")
 
 (defvar sdic-inline-pos-tip-subst-func-man
   'sdic-inline-display-popup
-  "Function used as substitute for manual-popup in text-only terminal.")
+  "Function used as substitute for manual-popup in non-X frame.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions
