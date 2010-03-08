@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.0.3.2")
+(defconst pos-tip-version "0.0.4")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -50,6 +50,10 @@
 ;;
 
 ;;; History:
+;; 2010-03-08  S. Irie
+;;         * Added optional argument DX
+;;         * Version 0.0.4
+;;
 ;; 2010-03-08  S. Irie
 ;;         * Bug fix
 ;;         * Version 0.0.3
