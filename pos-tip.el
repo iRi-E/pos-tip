@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.0.4.2")
+(defconst pos-tip-version "0.0.4.3")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -161,7 +161,7 @@ DX specifies horizontal offset in pixel."
 				(posn-at-x-y (max (car x-y) 0) (cadr x-y)))))))
     (cons (max 0 (min ax (- (x-display-pixel-width) (or pixel-width 0))))
 	  (if (> (+ ay char-height (or pixel-height 0)) (x-display-pixel-height))
-	      (- ay (or pixel-height 0))
+	      (max 0 (- ay (or pixel-height 0)))
 	    (+ ay char-height)))))
 
 (defun pos-tip-cancel-timer ()
