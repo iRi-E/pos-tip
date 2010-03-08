@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.0.4.1")
+(defconst pos-tip-version "0.0.4.2")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -322,6 +322,40 @@ DX specifies horizontal offset in pixel."
 	     pos-tip-internal-border-width)
 	  1)))
 
+(defun pos-tip-string-width-height (string)
+  "Count columns and rows of STRING. Return a cons cell like (WIDTH . HEIGHT).
+
+Example:
+ (pos-tip-string-width-height \"abc\\nあいう\\n123\")
+ ;; => (6 . 3)"
+  (with-temp-buffer
+    (insert string)
+    (goto-char (point-min))
+    (end-of-line)
+    (let ((width-list (list (current-column))))
+      (while (< (point) (point-max))
+	(end-of-line 2)
+	(push (current-column) width-list))
+      (cons (apply 'max width-list)
+	    (length width-list)))))
+
+(make-face 'pos-tip-temp)
+
+(defun pos-tip-show-with-frame-font
+  (string &optional tip-color pos window timeout frame-coordinates dx)
+  "Show STRING in a tooltip at POS in WINDOW. Analogue of `pos-tip-show'.
+Use frame's default font and automatically calculate pixel width and height.
+
+See `pos-tip-show' for details."
+  (let ((frame (window-frame (or window (selected-window))))
+	(w-h (pos-tip-string-width-height string)))
+    (face-spec-reset-face 'pos-tip-temp)
+    (set-face-font 'pos-tip-temp (frame-parameter frame 'font))
+    (pos-tip-show-no-propertize
+     (propertize string 'face 'pos-tip-temp)
+     tip-color pos window timeout
+     (pos-tip-tooltip-width (car w-h) (frame-char-width frame))
+     (pos-tip-tooltip-height (cdr w-h) (frame-char-height frame)))))
 
 (provide 'pos-tip)
 
