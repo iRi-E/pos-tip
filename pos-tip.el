@@ -132,11 +132,12 @@ point character. These value are used to adjust the position in order that
 the window doesn't disappear by sticking out of the display.
 
 FRAME-COORDINATES specifies the pixel coordinates of top left corner of the
-target frame as a cons cell like (LEFT . TOP). If omitted, it's automatically
-obtained by `pos-tip-frame-top-left-coordinates', but slightly slower than
-when explicitly specified. Users can get the latest frame coordinates for
-next call by referring the variable `pos-tip-saved-frame-coordinates' just
-after calling this function.
+target frame relative to the display as a cons cell like (LEFT . TOP). If
+omitted, it's automatically obtained by `pos-tip-frame-top-left-coordinates'.
+This argument is used for better performance, but can be used only when
+it's clear that frame isn't moved since previous call. Users can obtain the
+latest frame coordinates to use for next call by referring the variable
+`pos-tip-saved-frame-coordinates' just after calling this function.
 
 DX specifies horizontal offset in pixel."
   (unless frame-coordinates
@@ -287,21 +288,28 @@ Automatically hide the tooltip after TIMEOUT seconds. Omitting TIMEOUT means
 use the default timeout of 5 seconds. Non-positive TIMEOUT means don't hide
 tooltip automatically.
 
-If PIXEL-WIDTH and PIXEL-HEIGHT are given, they specify the size of tooltip,
-which will be located around the point character, and are used to adjust
-the position in order that the window doesn't disappear by sticking out of
-the display. Note that this function does't calculate tooltip's size itself,
-so user should calculate these values by using `pos-tip-tooltip-width' and
-`pos-tip-tooltip-height'.
+PIXEL-WIDTH and PIXEL-HEIGHT specify the size of tooltip, if given. These
+are used to adjust the tooltip position in order that it doesn't disappear by
+sticking out of the display, and also used to prevent it from vanishing by
+overlapping with mouse pointer.
+
+Note that this function itself doesn't calculate tooltip size because the
+character width and height specified by `pos-tip' face are unknown. So users
+should calculate PIXEL-WIDTH and PIXEL-HEIGHT by using `pos-tip-tooltip-width'
+and `pos-tip-tooltip-height', or use `pos-tip-show-with-frame-font' instead,
+which can automatically calculate tooltip size.
 
 FRAME-COORDINATES specifies the pixel coordinates of top left corner of the
-target frame as a cons cell like (LEFT . TOP). If omitted, it's automatically
-obtained by `pos-tip-frame-top-left-coordinates', but slightly slower than
-when explicitly specified. Users can get the latest frame coordinates for
-next call by referring the variable `pos-tip-saved-frame-coordinates' just
-after calling this function.
+target frame relative to the display as a cons cell like (LEFT . TOP). If
+omitted, it's automatically obtained by `pos-tip-frame-top-left-coordinates'.
+This argument is used for better performance, but can be used only when
+it's clear that frame isn't moved since previous call. Users can obtain the
+latest frame coordinates to use for next call by referring the variable
+`pos-tip-saved-frame-coordinates' just after calling this function.
 
-DX specifies horizontal offset in pixel."
+DX specifies horizontal offset in pixel.
+
+See also `pos-tip-show-with-frame-font' and `pos-tip-show-no-propertize'."
   (pos-tip-show-no-propertize (propertize string 'face 'pos-tip) 'pos-tip
 			      pos window timeout pixel-width pixel-height
 			      frame-coordinates dx))
