@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.0.4.4")
+(defconst pos-tip-version "0.0.99.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -75,18 +75,15 @@
 
 (defvar pos-tip-border-width 1
   "Outer border width of pos-tip's tooltip.")
+
 (defvar pos-tip-internal-border-width 2
   "Text margin of pos-tip's tooltip.")
 
-(defface pos-tip
-  '((((class color))
-     :foreground "black"
-     :background "lightyellow"
-     :inherit variable-pitch)
-    (t
-     :inherit variable-pitch))
-  "Face for pos-tip's tooltip."
-  :group 'pos-tip)
+(defvar pos-tip-foreground-color "black"
+  "Default foreground color of pos-tip's tooltip.")
+
+(defvar pos-tip-background-color "lightyellow"
+  "Default background color of pos-tip's tooltip.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions
@@ -212,9 +209,18 @@ in FRAME."
   "Show STRING in a tooltip at POS in WINDOW.
 Analogous to `pos-tip-show' except don't propertize STRING by `pos-tip' face.
 
-TIP-COLOR is a face or a cons cell like (FOREGROUND-COLOR . BACKGROUND-COLOR)
-used to specify *only* foreground-color and background-color of tooltip.
-If omitted, use sysytem's default colors instead.
+PIXEL-WIDTH and PIXEL-HEIGHT specify the size of tooltip, if given. These
+are used to adjust the tooltip position in order that it doesn't disappear by
+sticking out of the display, and also used to prevent it from vanishing by
+overlapping with mouse pointer.
+
+Note that this function itself doesn't calculate tooltip size because the
+character width and height specified by faces are unknown. So users should
+calculate PIXEL-WIDTH and PIXEL-HEIGHT by using `pos-tip-tooltip-width' and
+`pos-tip-tooltip-height', or use `pos-tip-show' instead, which can
+automatically calculate tooltip size.
+
+See `pos-tip-show' for details.
 
 Example:
 
@@ -234,21 +240,21 @@ Example:
 
  (let ((str (propertize \" foo \\n bar \\n baz \" 'face 'my-tooltip)))
    (put-text-property 6 11 'face 'my-tooltip-highlight str)
-   (pos-tip-show-no-propertize str 'my-tooltip))
-
-See `pos-tip-show' for details."
+   (pos-tip-show-no-propertize str 'my-tooltip))"
   (let* ((x-y (pos-tip-compute-pixel-position pos window pixel-width pixel-height
 					      frame-coordinates dx))
 	 (ax (car x-y))
 	 (ay (cdr x-y))
 	 (rx (- ax (car pos-tip-saved-frame-coordinates)))
 	 (ry (- ay (cdr pos-tip-saved-frame-coordinates)))
-	 (fg (or (car-safe tip-color)
-		 (face-attribute (or (and (facep tip-color) tip-color)
-				     'pos-tip) :foreground)))
-	 (bg (or (cdr-safe tip-color)
-		 (face-attribute (or (and (facep tip-color) tip-color)
-				     'pos-tip) :background)))
+	 (fg (or (and (facep tip-color)
+		      (face-attribute tip-color :foreground))
+		 (car-safe tip-color)
+		 pos-tip-foreground-color))
+	 (bg (or (and (facep tip-color)
+		      (face-attribute tip-color :background))
+		 (cdr-safe tip-color)
+		 pos-tip-background-color))
 	 (frame (window-frame (or window (selected-window))))
 	 (x-max-tooltip-size
 	  (cons (or (and pixel-width
@@ -274,64 +280,6 @@ See `pos-tip-show' for details."
 	(pos-tip-cancel-timer))
     (cons rx ry)))
 
-(defun pos-tip-show
-  (string &optional pos window timeout pixel-width pixel-height frame-coordinates dx)
-  "Show STRING in a tooltip, which is a small X window, at POS in WINDOW.
-
-Return pixel position of tooltip relative to top left corner of frame as
-a cons cell like (X . Y).
-
-Omitting POS and WINDOW means use current position and selected window,
-respectively.
-
-Automatically hide the tooltip after TIMEOUT seconds. Omitting TIMEOUT means
-use the default timeout of 5 seconds. Non-positive TIMEOUT means don't hide
-tooltip automatically.
-
-PIXEL-WIDTH and PIXEL-HEIGHT specify the size of tooltip, if given. These
-are used to adjust the tooltip position in order that it doesn't disappear by
-sticking out of the display, and also used to prevent it from vanishing by
-overlapping with mouse pointer.
-
-Note that this function itself doesn't calculate tooltip size because the
-character width and height specified by `pos-tip' face are unknown. So users
-should calculate PIXEL-WIDTH and PIXEL-HEIGHT by using `pos-tip-tooltip-width'
-and `pos-tip-tooltip-height', or use `pos-tip-show-with-frame-font' instead,
-which can automatically calculate tooltip size.
-
-FRAME-COORDINATES specifies the pixel coordinates of top left corner of the
-target frame relative to the display as a cons cell like (LEFT . TOP). If
-omitted, it's automatically obtained by `pos-tip-frame-top-left-coordinates'.
-This argument is used for better performance, but can be used only when
-it's clear that frame isn't moved since previous call. Users can obtain the
-latest frame coordinates to use for next call by referring the variable
-`pos-tip-saved-frame-coordinates' just after calling this function.
-
-DX specifies horizontal offset in pixel.
-
-See also `pos-tip-show-with-frame-font' and `pos-tip-show-no-propertize'."
-  (pos-tip-show-no-propertize (propertize string 'face 'pos-tip) 'pos-tip
-			      pos window timeout pixel-width pixel-height
-			      frame-coordinates dx))
-
-(defalias 'pos-tip-hide 'x-hide-tip
-  "Hide pos-tip's tooltip.")
-
-(defun pos-tip-tooltip-width (width char-width)
-  "Calculate tooltip pixel width."
-  (+ (* width char-width)
-     (ash (+ pos-tip-border-width
-	     pos-tip-internal-border-width)
-	  1)))
-
-(defun pos-tip-tooltip-height (height char-height)
-  "Calculate tooltip pixel height."
-  (+ (* height (+ char-height
-		  (or (default-value 'line-spacing) 0)))
-     (ash (+ pos-tip-border-width
-	     pos-tip-internal-border-width)
-	  1)))
-
 (defun pos-tip-string-width-height (string)
   "Count columns and rows of STRING. Return a cons cell like (WIDTH . HEIGHT).
 
@@ -351,12 +299,52 @@ Example:
 
 (make-face 'pos-tip-temp)
 
-(defun pos-tip-show-with-frame-font
-  (string &optional tip-color pos window timeout frame-coordinates dx)
-  "Show STRING in a tooltip at POS in WINDOW. Analogue of `pos-tip-show'.
-Use frame's default font and automatically calculate pixel width and height.
+(defun pos-tip-tooltip-width (width char-width)
+  "Calculate tooltip pixel width."
+  (+ (* width char-width)
+     (ash (+ pos-tip-border-width
+	     pos-tip-internal-border-width)
+	  1)))
 
-See `pos-tip-show' for details."
+(defun pos-tip-tooltip-height (height char-height)
+  "Calculate tooltip pixel height."
+  (+ (* height (+ char-height
+		  (or (default-value 'line-spacing) 0)))
+     (ash (+ pos-tip-border-width
+	     pos-tip-internal-border-width)
+	  1)))
+
+(defun pos-tip-show
+  (string &optional tip-color pos window timeout frame-coordinates dx)
+  "Show STRING in a tooltip, which is a small X window, at POS in WINDOW
+using frame's default font with TIP-COLOR.
+
+Return pixel position of tooltip relative to top left corner of frame as
+a cons cell like (X . Y).
+
+TIP-COLOR is a face or a cons cell like (FOREGROUND-COLOR . BACKGROUND-COLOR)
+used to specify *only* foreground-color and background-color of tooltip.
+If omitted, use `pos-tip-foreground-color' and `pos-tip-background-color'
+instead.
+
+Omitting POS and WINDOW means use current position and selected window,
+respectively.
+
+Automatically hide the tooltip after TIMEOUT seconds. Omitting TIMEOUT means
+use the default timeout of 5 seconds. Non-positive TIMEOUT means don't hide
+tooltip automatically.
+
+FRAME-COORDINATES specifies the pixel coordinates of top left corner of the
+target frame relative to the display as a cons cell like (LEFT . TOP). If
+omitted, it's automatically obtained by `pos-tip-frame-top-left-coordinates'.
+This argument is used for better performance, but can be used only when
+it's clear that frame isn't moved since previous call. Users can obtain the
+latest frame coordinates to use for next call by referring the variable
+`pos-tip-saved-frame-coordinates' just after calling this function.
+
+DX specifies horizontal offset in pixel.
+
+See also `pos-tip-show-no-propertize'."
   (let ((frame (window-frame (or window (selected-window))))
 	(w-h (pos-tip-string-width-height string)))
     (face-spec-reset-face 'pos-tip-temp)
@@ -366,6 +354,9 @@ See `pos-tip-show' for details."
      tip-color pos window timeout
      (pos-tip-tooltip-width (car w-h) (frame-char-width frame))
      (pos-tip-tooltip-height (cdr w-h) (frame-char-height frame)))))
+
+(defalias 'pos-tip-hide 'x-hide-tip
+  "Hide pos-tip's tooltip.")
 
 (provide 'pos-tip)
 
