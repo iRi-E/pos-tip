@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.0.99.3")
+(defconst pos-tip-version "0.1.0")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -50,6 +50,16 @@
 ;;
 
 ;;; History:
+;; 2010-03-09  S. Irie
+;;         * Re-implemented `pos-tip-show' (*incompatibly changed*)
+;;             - Use frame default font
+;;             - Automatically calculate tooltip pixel size
+;;             - Added optional arguments: TIP-COLOR, MAX-WIDTH
+;;         * Added utility functions:
+;;             `pos-tip-split-string', `pos-tip-string-width-height'
+;;         * Bug fixes
+;;         * Version 0.1.0
+;;
 ;; 2010-03-08  S. Irie
 ;;         * Added optional argument DX
 ;;         * Version 0.0.4
