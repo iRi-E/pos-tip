@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.0.99.2")
+(defconst pos-tip-version "0.0.99.3")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -278,6 +278,40 @@ Example:
 	(pos-tip-cancel-timer))
     (cons rx ry)))
 
+(defun pos-tip-split-string (string &optional max-width left-margin)
+  "Split STRING into fixed width strings. Return a list of these strings.
+
+MAX-WIDTH specifies maximum column number of each row. MAX-WIDTH nil means
+use display-width. Note that this function doesn't add any padding characters
+at the end of the result.
+
+The optional 3rd arg LEFT-MARGIN, if non-nil, specifies number of spece
+characters to add at the beginning of each row."
+  (let* ((display-width (/ (x-display-pixel-width) (frame-char-width)))
+	 (width (or (and max-width
+			 (min max-width display-width))
+		    display-width))
+	 (margin (and left-margin
+		      (make-string left-margin ?\s)))
+	 line row rows)
+    (with-temp-buffer
+      (insert string)
+      (goto-char (point-min))
+      (end-of-line)
+      (while (prog2
+		 (let ((string (buffer-substring
+				(line-beginning-position) (point))))
+		   (while (progn
+			    (setq string (concat margin string)
+				  row (truncate-string-to-width string width)
+				  rows (cons row rows))
+			    (if (not (= (length row) (length string)))
+				(setq string (substring string (length row)))))))
+		 (< (point) (point-max))
+	       (end-of-line 2))))
+    (nreverse rows)))
+
+
 (defun pos-tip-string-width-height (string)
   "Count columns and rows of STRING. Return a cons cell like (WIDTH . HEIGHT).
 
@@ -295,8 +329,6 @@ Example:
       (cons (apply 'max width-list)
 	    (length width-list)))))
 
-(make-face 'pos-tip-temp)
-
 (defun pos-tip-tooltip-width (width char-width)
   "Calculate tooltip pixel width."
   (+ (* width char-width)
@@ -312,8 +344,10 @@ Example:
 	     pos-tip-internal-border-width)
 	  1)))
 
+(make-face 'pos-tip-temp)
+
 (defun pos-tip-show
-  (string &optional tip-color pos window timeout frame-coordinates dx)
+  (string &optional tip-color pos window timeout max-width frame-coordinates dx)
   "Show STRING in a tooltip, which is a small X window, at POS in WINDOW
 using frame's default font with TIP-COLOR.
 
@@ -332,6 +366,8 @@ Automatically hide the tooltip after TIMEOUT seconds. Omitting TIMEOUT means
 use the default timeout of 5 seconds. Non-positive TIMEOUT means don't hide
 tooltip automatically.
 
+MAX-WIDTH specifies the maximum number of columns, if non-nil.
+
 FRAME-COORDINATES specifies the pixel coordinates of top left corner of the
 target frame relative to the display as a cons cell like (LEFT . TOP). If
 omitted, it's automatically obtained by `pos-tip-frame-top-left-coordinates'.
@@ -344,7 +380,12 @@ DX specifies horizontal offset in pixel.
 
 See also `pos-tip-show-no-propertize'."
   (let ((frame (window-frame (or window (selected-window))))
-	(w-h (pos-tip-string-width-height string)))
+	(w-h (if max-width
+		 (let ((rows (pos-tip-split-string string max-width)))
+		   (setq string (mapconcat 'identity rows "\n"))
+		   (cons (apply 'max (mapcar 'length rows))
+			 (length rows)))
+	       (pos-tip-string-width-height string))))
     (face-spec-reset-face 'pos-tip-temp)
     (set-face-font 'pos-tip-temp (frame-parameter frame 'font))
     (pos-tip-show-no-propertize
