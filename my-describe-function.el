@@ -1,5 +1,5 @@
 (defun my-describe-function (function)
-  "Display the full documentation of FUNCTION (a symbol) on tooltip."
+  "Display the full documentation of FUNCTION (a symbol) in tooltip."
   (interactive (list (function-called-at-point)))
   (if (null function)
       (pos-tip-show
@@ -13,4 +13,4 @@
          (buffer-string)))
      nil nil nil 0)))
 
-;(define-key emacs-lisp-mode-map (kbd "C-;") 'my-describe-function)
+(define-key emacs-lisp-mode-map (kbd "C-;") 'my-describe-function)
