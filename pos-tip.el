@@ -1,4 +1,4 @@
-;;; pos-tip.el -- Show tooltip at point
+;;; pos-tip.el -- Show tooltip at point -*- coding: utf-8 -*-
 
 ;; Copyright (C) 2010 S. Irie
 
@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.1")
+(defconst pos-tip-version "0.1.2")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -31,6 +31,8 @@
 ;; is not easy. This program provides such function to be used by other
 ;; frontend programs.
 
+;; *** Note that this program can work only under X window system. ***
+
 ;;
 ;; Installation:
 ;;
@@ -43,13 +45,17 @@
 ;;
 ;; We can display a tooltip at POS in WINDOW by following:
 ;;
-;;   (pos-tip "foo bar" POS WINDOW)
+;;   (pos-tip-show "foo bar" '(FG-COLOR . BG-COLOR) POS WINDOW)
 ;;
-;; Here, POS and WINDOW can be omitted, means use current position
-;; and selected window, respectively.
+;; Here, '(FG-COLOR . BG-COLOR), POS and WINDOW can be omitted, means
+;; use default colors, current position and selected window, respectively.
 ;;
 
 ;;; History:
+;; 2010-03-11  S. Irie
+;;         * Modified commentary
+;;         * Version 0.1.2
+;;
 ;; 2010-03-11  S. Irie
 ;;         * Re-implemented `pos-tip-string-width-height'
 ;;         * Added indicator variable `pos-tip-upperside-p'
