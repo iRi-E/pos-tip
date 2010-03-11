@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.0.2")
+(defconst pos-tip-version "0.1.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -50,6 +50,11 @@
 ;;
 
 ;;; History:
+;; 2010-03-11  S. Irie
+;;         * Re-implemented `pos-tip-string-width-height'
+;;         * Added indicator variable `pos-tip-upperside-p'
+;;         * Version 0.1.1
+;;
 ;; 2010-03-09  S. Irie
 ;;         * Re-implemented `pos-tip-show' (*incompatibly changed*)
 ;;             - Use frame default font
