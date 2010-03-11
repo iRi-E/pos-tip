@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.0.1")
+(defconst pos-tip-version "0.1.0.2")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -338,12 +338,13 @@ Example:
     (insert string)
     (goto-char (point-min))
     (end-of-line)
-    (let ((width-list (list (current-column))))
+    (let ((width (current-column))
+	  (height 1))
       (while (< (point) (point-max))
 	(end-of-line 2)
-	(push (current-column) width-list))
-      (cons (apply 'max width-list)
-	    (length width-list)))))
+	(setq width (max (current-column) width)
+	      height (1+ height)))
+      (cons width height))))
 
 (defun pos-tip-tooltip-width (width char-width)
   "Calculate tooltip pixel width."
