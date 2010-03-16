@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip, Dictionary
 
-(defconst sdic-inline-pos-tip-version "0.0.4.1")
+(defconst sdic-inline-pos-tip-version "0.0.5")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -46,6 +46,10 @@
 ;;
 
 ;;; History:
+;; 2010-03-16  S. Irie
+;;         * Bug fix
+;;         * Version 0.0.5
+;;
 ;; 2010-03-11  S. Irie
 ;;         * Modified to simplify implementation
 ;;         * Fixed typo
