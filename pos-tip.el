@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.2.1")
+(defconst pos-tip-version "0.1.2.2")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -295,11 +295,12 @@ Example:
 		 pos-tip-background-color))
 	 (frame (window-frame (or window (selected-window))))
 	 (x-max-tooltip-size
-	  ;; Set quite large values because this variable's behavior is incorrect
-	  (cons (/ (ash (x-display-pixel-width) 1)
-		   (frame-char-width frame))
-		(/ (ash (x-display-pixel-height) 1)
-		   (frame-char-height frame)))))
+	  (cons (1+ (/ (or pixel-width
+			   (x-display-pixel-width))
+		       (car pos-tip-default-char-width-height)))
+		(1+ (/ (or pixel-height
+			   (x-display-pixel-height))
+		       (cdr pos-tip-default-char-width-height))))))
     (and pixel-width pixel-height
 	 (pos-tip-avoid-mouse rx (+ rx pixel-width)
 			      ry (+ ry pixel-height)
