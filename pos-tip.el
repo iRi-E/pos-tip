@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.3")
+(defconst pos-tip-version "0.1.4")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -52,6 +52,11 @@
 ;;
 
 ;;; History:
+;; 2010-03-16  S. Irie
+;;         * Added support for multi-display environment
+;;         * Bug fix
+;;         * Version 0.1.4
+;;
 ;; 2010-03-16  S. Irie
 ;;         * Bug fix
 ;;         * Changed calculation for `x-max-tooltip-size'
@@ -239,16 +244,24 @@ in FRAME."
 	   (t
 	    (set-mouse-pixel-position mframe mx (1+ bottom)))))))))
 
-(defvar pos-tip-default-char-width-height
-  (let ((f (x-create-frame '((visibility . nil)
-			     (minibuffer . nil)
-			     (menu-bar-lines . nil)
-			     (tool-bar-lines . nil)
-			     (vertical-scroll-bars . nil)))))
-    (prog1
-	(with-selected-frame f
-	  (cons (frame-char-width) (frame-char-height)))
-      (delete-frame f))))
+(defvar pos-tip-default-char-width-height-alist nil)
+
+(defun pos-tip-default-char-width-height ()
+  (when (display-graphic-p)
+    (let* ((display (frame-parameter nil 'display))
+	   (w-h (cdr (assoc display pos-tip-default-char-width-height-alist))))
+      (unless w-h
+	(let ((frame (x-create-frame '((visibility . nil)
+				       (minibuffer . nil)
+				       (menu-bar-lines . nil)
+				       (tool-bar-lines . nil)
+				       (vertical-scroll-bars . nil)))))
+	  (setq w-h (cons (frame-char-width frame)
+			  (frame-char-height frame)))
+	  (delete-frame frame))
+	(push (cons display w-h)
+	      pos-tip-default-char-width-height-alist))
+      w-h)))
 
 (defun pos-tip-show-no-propertize
   (string &optional tip-color pos window timeout pixel-width pixel-height frame-coordinates dx)
@@ -302,13 +315,14 @@ Example:
 		 (cdr-safe tip-color)
 		 pos-tip-background-color))
 	 (frame (window-frame (or window (selected-window))))
+	 (char-w-h (pos-tip-default-char-width-height))
 	 (x-max-tooltip-size
 	  (cons (1+ (/ (or pixel-width
 			   (x-display-pixel-width))
-		       (car pos-tip-default-char-width-height)))
+		       (car char-w-h)))
 		(1+ (/ (or pixel-height
 			   (x-display-pixel-height))
-		       (cdr pos-tip-default-char-width-height))))))
+		       (cdr char-w-h))))))
     (and pixel-width pixel-height
 	 (pos-tip-avoid-mouse rx (+ rx pixel-width)
 			      ry (+ ry pixel-height)
@@ -392,7 +406,7 @@ Example:
 		     ((integerp spacing)
 		      spacing)
 		     ((floatp spacing)
-		      (truncate (* (cdr pos-tip-default-char-width-height)
+		      (truncate (* (cdr (pos-tip-default-char-width-height))
 				   spacing)))
 		     (t 0))))
        (ash (+ pos-tip-border-width
