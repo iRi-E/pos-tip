@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.2.2")
+(defconst pos-tip-version "0.1.2.3")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -153,13 +153,15 @@ the window doesn't disappear by sticking out of the display. By referring
 the variable `pos-tip-upperside-p' after calling this function, user can
 examine whether the window will be located above POS.
 
-FRAME-COORDINATES specifies the pixel coordinates of top left corner of the
-target frame relative to the display as a cons cell like (LEFT . TOP). If
-omitted, it's automatically obtained by `pos-tip-frame-top-left-coordinates'.
-This argument is used for better performance, but can be used only when
-it's clear that frame isn't moved since previous call. Users can obtain the
-latest frame coordinates to use for next call by referring the variable
-`pos-tip-saved-frame-coordinates' just after calling this function.
+If FRAME-COORDINATES is omitted, automatically obtain the absolute
+coordinates of the top left corner of frame which WINDOW is on. Here,
+`top left corner of frame' represents the origin of `window-pixel-edges'
+and its coordinates are essential for calculating the return value. If
+non-nil, specifies the frame location as a cons cell like (LEFT . TOP).
+This option makes the calculations slightly faster, but can be used only
+when it's clear that frame is in the specified position. Users can get the
+latest values of frame location for using in the next call by referring the
+variable `scim-saved-frame-coordinates' just after calling this function.
 
 DX specifies horizontal offset in pixel."
   (unless frame-coordinates
@@ -415,13 +417,15 @@ tooltip automatically.
 
 MAX-WIDTH specifies the maximum number of columns, if non-nil.
 
-FRAME-COORDINATES specifies the pixel coordinates of top left corner of the
-target frame relative to the display as a cons cell like (LEFT . TOP). If
-omitted, it's automatically obtained by `pos-tip-frame-top-left-coordinates'.
-This argument is used for better performance, but can be used only when
-it's clear that frame isn't moved since previous call. Users can obtain the
-latest frame coordinates to use for next call by referring the variable
-`pos-tip-saved-frame-coordinates' just after calling this function.
+If FRAME-COORDINATES is omitted, automatically obtain the absolute
+coordinates of the top left corner of frame which WINDOW is on. Here,
+`top left corner of frame' represents the origin of `window-pixel-edges'
+and its coordinates are essential for calculating the return value. If
+non-nil, specifies the frame location as a cons cell like (LEFT . TOP).
+This option makes the calculations slightly faster, but can be used only
+when it's clear that frame is in the specified position. Users can get the
+latest values of frame location for using in the next call by referring the
+variable `scim-saved-frame-coordinates' just after calling this function.
 
 DX specifies horizontal offset in pixel.
 
