@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.2")
+(defconst pos-tip-version "0.1.2.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -231,6 +231,17 @@ in FRAME."
 	   (t
 	    (set-mouse-pixel-position mframe mx (1+ bottom)))))))))
 
+(defvar pos-tip-default-char-width-height
+  (let ((f (x-create-frame '((visibility . nil)
+			     (minibuffer . nil)
+			     (menu-bar-lines . nil)
+			     (tool-bar-lines . nil)
+			     (vertical-scroll-bars . nil)))))
+    (prog1
+	(with-selected-frame f
+	  (cons (frame-char-width) (frame-char-height)))
+      (delete-frame f))))
+
 (defun pos-tip-show-no-propertize
   (string &optional tip-color pos window timeout pixel-width pixel-height frame-coordinates dx)
   "Show STRING in a tooltip at POS in WINDOW.
@@ -366,11 +377,18 @@ Example:
 
 (defun pos-tip-tooltip-height (height char-height)
   "Calculate tooltip pixel height."
-  (+ (* height (+ char-height
-		  (or (default-value 'line-spacing) 0)))
-     (ash (+ pos-tip-border-width
-	     pos-tip-internal-border-width)
-	  1)))
+  (let ((spacing (default-value 'line-spacing)))
+    (+ (* height (+ char-height
+		    (cond
+		     ((integerp spacing)
+		      spacing)
+		     ((floatp spacing)
+		      (truncate (* (cdr pos-tip-default-char-width-height)
+				   spacing)))
+		     (t 0))))
+       (ash (+ pos-tip-border-width
+	       pos-tip-internal-border-width)
+	    1))))
 
 (make-face 'pos-tip-temp)
 
