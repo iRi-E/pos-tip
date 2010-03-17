@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.4")
+(defconst pos-tip-version "0.1.5")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -52,6 +52,10 @@
 ;;
 
 ;;; History:
+;; 2010-03-17  S. Irie
+;;         * Fixed typos in docstrings
+;;         * Version 0.1.5
+;;
 ;; 2010-03-16  S. Irie
 ;;         * Added support for multi-display environment
 ;;         * Bug fix
@@ -172,7 +176,7 @@ non-nil, specifies the frame location as a cons cell like (LEFT . TOP).
 This option makes the calculations slightly faster, but can be used only
 when it's clear that frame is in the specified position. Users can get the
 latest values of frame location for using in the next call by referring the
-variable `scim-saved-frame-coordinates' just after calling this function.
+variable `pos-tip-saved-frame-coordinates' just after calling this function.
 
 DX specifies horizontal offset in pixel."
   (unless frame-coordinates
@@ -445,7 +449,7 @@ non-nil, specifies the frame location as a cons cell like (LEFT . TOP).
 This option makes the calculations slightly faster, but can be used only
 when it's clear that frame is in the specified position. Users can get the
 latest values of frame location for using in the next call by referring the
-variable `scim-saved-frame-coordinates' just after calling this function.
+variable `pos-tip-saved-frame-coordinates' just after calling this function.
 
 DX specifies horizontal offset in pixel.
 
