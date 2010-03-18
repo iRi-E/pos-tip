@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.5.2")
+(defconst pos-tip-version "0.1.6")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -31,6 +31,8 @@
 ;; is not easy. This program provides such function to be used by other
 ;; frontend programs.
 
+;; This program is tested on GNU Emacs 22, 23.
+
 ;; *** Note that this program can work only under X window system. ***
 
 ;;
@@ -52,6 +54,11 @@
 ;;
 
 ;;; History:
+;; 2010-03-18  S. Irie
+;;         * Added/modifed docstrings
+;;         * Changed working buffer name to " *xwininfo*"
+;;         * Version 0.1.6
+;;
 ;; 2010-03-17  S. Irie
 ;;         * Fixed typos in docstrings
 ;;         * Version 0.1.5
