@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.5.1")
+(defconst pos-tip-version "0.1.5.2")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -136,7 +136,7 @@ If FRAME is omitted, use selected-frame.
 
 Users can also get the frame coordinates by referring the variable
 `pos-tip-saved-frame-coordinates' just after calling this function."
-  (with-current-buffer (get-buffer-create "*xwininfo*")
+  (with-current-buffer (get-buffer-create " *xwininfo*")
     (let ((case-fold-search nil))
       (buffer-disable-undo)
       (erase-buffer)
