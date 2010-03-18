@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.5")
+(defconst pos-tip-version "0.1.5.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -125,7 +125,8 @@
 ;; Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar pos-tip-saved-frame-coordinates '(0 . 0))
+(defvar pos-tip-saved-frame-coordinates '(0 . 0)
+  "The latest result of `pos-tip-frame-top-left-coordinates'.")
 
 (defun pos-tip-frame-top-left-coordinates (&optional frame)
   "Return the pixel coordinates of FRAME as a cons cell (LEFT . TOP),
@@ -151,7 +152,9 @@ Users can also get the frame coordinates by referring the variable
 					    (search-forward "Y: ")
 					    (line-end-position)))))))))
 
-(defvar pos-tip-upperside-p nil)
+(defvar pos-tip-upperside-p nil
+  "Non-nil indicates the latest result of `pos-tip-compute-pixel-position'
+is the position above POS.")
 
 (defun pos-tip-compute-pixel-position
   (&optional pos window pixel-width pixel-height frame-coordinates dx)
@@ -248,9 +251,12 @@ in FRAME."
 	   (t
 	    (set-mouse-pixel-position mframe mx (1+ bottom)))))))))
 
-(defvar pos-tip-default-char-width-height-alist nil)
+(defvar pos-tip-default-char-width-height-alist nil
+ "Alist of default character sizes of each display." )
 
 (defun pos-tip-default-char-width-height ()
+  "Return default character size of display which selected frame is in
+as a cons cell like (WIDTH . HEIGHT)."
   (when (display-graphic-p)
     (let* ((display (frame-parameter nil 'display))
 	   (w-h (cdr (assoc display pos-tip-default-char-width-height-alist))))
@@ -287,23 +293,23 @@ See `pos-tip-show' for details.
 
 Example:
 
- (defface my-tooltip
-   '((t
-      :background \"gray85\"
-      :foreground \"black\"
-      :inherit variable-pitch))
-   \"Face for my tooltip.\")
+\(defface my-tooltip
+  '((t
+     :background \"gray85\"
+     :foreground \"black\"
+     :inherit variable-pitch))
+  \"Face for my tooltip.\")
 
- (defface my-tooltip-highlight
-   '((t
-      :background \"blue\"
-      :foreground \"white\"
-      :inherit my-tooltip))
-   \"Face for my tooltip highlighted.\")
+\(defface my-tooltip-highlight
+  '((t
+     :background \"blue\"
+     :foreground \"white\"
+     :inherit my-tooltip))
+  \"Face for my tooltip highlighted.\")
 
- (let ((str (propertize \" foo \\n bar \\n baz \" 'face 'my-tooltip)))
-   (put-text-property 6 11 'face 'my-tooltip-highlight str)
-   (pos-tip-show-no-propertize str 'my-tooltip))"
+\(let ((str (propertize \" foo \\n bar \\n baz \" 'face 'my-tooltip)))
+  (put-text-property 6 11 'face 'my-tooltip-highlight str)
+  (pos-tip-show-no-propertize str 'my-tooltip))"
   (let* ((x-y (pos-tip-compute-pixel-position pos window pixel-width pixel-height
 					      frame-coordinates dx))
 	 (ax (car x-y))
@@ -381,8 +387,9 @@ characters to add at the beginning of each row."
   "Count columns and rows of STRING. Return a cons cell like (WIDTH . HEIGHT).
 
 Example:
- (pos-tip-string-width-height \"abc\\nあいう\\n123\")
- ;; => (6 . 3)"
+
+\(pos-tip-string-width-height \"abc\\nあいう\\n123\")
+;; => (6 . 3)"
   (with-temp-buffer
     (insert string)
     (goto-char (point-min))
