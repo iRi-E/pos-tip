@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.6")
+(defconst pos-tip-version "0.1.6.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -164,7 +164,7 @@ Users can also get the frame coordinates by referring the variable
 is the position above POS.")
 
 (defun pos-tip-compute-pixel-position
-  (&optional pos window pixel-width pixel-height frame-coordinates dx)
+  (&optional pos window pixel-width pixel-height frame-coordinates dx dy)
   "Return the screen pixel position of POS in WINDOW as a cons cell (X . Y).
 Its values show the coordinates of lower left corner of the character.
 
@@ -188,7 +188,11 @@ when it's clear that frame is in the specified position. Users can get the
 latest values of frame location for using in the next call by referring the
 variable `pos-tip-saved-frame-coordinates' just after calling this function.
 
-DX specifies horizontal offset in pixel."
+DX specifies horizontal offset in pixel.
+
+DY specifies vertical offset in pixel. Omitting DY means use the height of
+object at POS and adjust the coordinates so that tooltip won't hide the
+object."
   (unless frame-coordinates
     (pos-tip-frame-top-left-coordinates
      (window-frame (or window (selected-window)))))
@@ -198,23 +202,25 @@ DX specifies horizontal offset in pixel."
 		(car (window-inside-pixel-edges))
 		(car x-y)
 		(or dx 0)))
-	 (ay (+ (cdr pos-tip-saved-frame-coordinates)
-		(cadr (window-pixel-edges))
-		(cadr x-y)))
-	 ;; `posn-object-width-height' returns an incorrect value
-	 ;; when the header line is displayed (Emacs bug #4426).
-	 ;; In this case, `frame-header-height' is used substitutively,
-	 ;; but this function doesn't return actual character height.
-	 (char-height (or (and header-line-format
-			       (frame-char-height))
-			  (cdr (posn-object-width-height
-				(posn-at-x-y (max (car x-y) 0) (cadr x-y)))))))
+	 (ay0 (+ (cdr pos-tip-saved-frame-coordinates)
+		 (cadr (window-pixel-edges))
+		 (cadr x-y)))
+	 (ay (+ ay0
+		(or dy
+		    ;; `posn-object-width-height' returns an incorrect value
+		    ;; when the header line is displayed (Emacs bug #4426).
+		    ;; In this case, `frame-char-height' is used substitutively,
+		    ;; but this function doesn't return actual object height.
+		    (and header-line-format
+			 (frame-char-height))
+		    (cdr (posn-object-width-height
+			  (posn-at-x-y (max (car x-y) 0) (cadr x-y))))))))
+    (setq pos-tip-upperside-p (> (+ ay (or pixel-height 0))
+				 (x-display-pixel-height)))
     (cons (max 0 (min ax (- (x-display-pixel-width) (or pixel-width 0))))
-	  (if (setq pos-tip-upperside-p
-		    (> (+ ay char-height (or pixel-height 0))
-		       (x-display-pixel-height)))
-	      (max 0 (- ay (or pixel-height 0)))
-	    (+ ay char-height)))))
+	  (max 0 (if pos-tip-upperside-p
+		     (- (if dy (x-display-pixel-height) ay0) (or pixel-height 0))
+		   ay)))))
 
 (defun pos-tip-cancel-timer ()
   "Cancel timeout of tooltip."
@@ -281,7 +287,7 @@ as a cons cell like (WIDTH . HEIGHT)."
       w-h)))
 
 (defun pos-tip-show-no-propertize
-  (string &optional tip-color pos window timeout pixel-width pixel-height frame-coordinates dx)
+  (string &optional tip-color pos window timeout pixel-width pixel-height frame-coordinates dx dy)
   "Show STRING in a tooltip at POS in WINDOW.
 Analogous to `pos-tip-show' except don't propertize STRING by `pos-tip' face.
 
@@ -318,7 +324,7 @@ Example:
   (put-text-property 6 11 'face 'my-tooltip-highlight str)
   (pos-tip-show-no-propertize str 'my-tooltip))"
   (let* ((x-y (pos-tip-compute-pixel-position pos window pixel-width pixel-height
-					      frame-coordinates dx))
+					      frame-coordinates dx dy))
 	 (ax (car x-y))
 	 (ay (cdr x-y))
 	 (rx (- ax (car pos-tip-saved-frame-coordinates)))
@@ -434,7 +440,7 @@ Example:
 (make-face 'pos-tip-temp)
 
 (defun pos-tip-show
-  (string &optional tip-color pos window timeout max-width frame-coordinates dx)
+  (string &optional tip-color pos window timeout max-width frame-coordinates dx dy)
   "Show STRING in a tooltip, which is a small X window, at POS in WINDOW
 using frame's default font with TIP-COLOR.
 
@@ -467,6 +473,10 @@ variable `pos-tip-saved-frame-coordinates' just after calling this function.
 
 DX specifies horizontal offset in pixel.
 
+DY specifies vertical offset in pixel. Omitting DY means use the height of
+object at POS and show tooltip at appropriate location not to hide the
+object.
+
 See also `pos-tip-show-no-propertize'."
   (let ((frame (window-frame (or window (selected-window))))
 	(w-h (if max-width
@@ -481,7 +491,8 @@ See also `pos-tip-show-no-propertize'."
      (propertize string 'face 'pos-tip-temp)
      tip-color pos window timeout
      (pos-tip-tooltip-width (car w-h) (frame-char-width frame))
-     (pos-tip-tooltip-height (cdr w-h) (frame-char-height frame)))))
+     (pos-tip-tooltip-height (cdr w-h) (frame-char-height frame))
+     frame-coordinates dx dy)))
 
 (defalias 'pos-tip-hide 'x-hide-tip
   "Hide pos-tip's tooltip.")
