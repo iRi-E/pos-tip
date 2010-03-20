@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.6.1")
+(defconst pos-tip-version "0.1.6.2")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -161,7 +161,7 @@ Users can also get the frame coordinates by referring the variable
 
 (defvar pos-tip-upperside-p nil
   "Non-nil indicates the latest result of `pos-tip-compute-pixel-position'
-is the position above POS.")
+was upper than the location specified by the arguments.")
 
 (defun pos-tip-compute-pixel-position
   (&optional pos window pixel-width pixel-height frame-coordinates dx dy)
@@ -173,10 +173,10 @@ respectively.
 
 If PIXEL-WIDTH and PIXEL-HEIGHT are given, this function assumes these
 values as the size of small window like tooltip which is located around the
-point character. These value are used to adjust the position in order that
-the window doesn't disappear by sticking out of the display. By referring
+object at POS. These value are used to adjust the location in order that
+the tooltip won't disappear by sticking out of the display. By referring
 the variable `pos-tip-upperside-p' after calling this function, user can
-examine whether the window will be located above POS.
+examine whether the tooltip will be located above the specified position.
 
 If FRAME-COORDINATES is omitted, automatically obtain the absolute
 coordinates of the top left corner of frame which WINDOW is on. Here,
