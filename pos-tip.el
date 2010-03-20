@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.6.2")
+(defconst pos-tip-version "0.1.6.3")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -173,7 +173,7 @@ respectively.
 
 If PIXEL-WIDTH and PIXEL-HEIGHT are given, this function assumes these
 values as the size of small window like tooltip which is located around the
-object at POS. These value are used to adjust the location in order that
+object at POS. These values are used to adjust the location in order that
 the tooltip won't disappear by sticking out of the display. By referring
 the variable `pos-tip-upperside-p' after calling this function, user can
 examine whether the tooltip will be located above the specified position.
