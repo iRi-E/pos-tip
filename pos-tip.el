@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.6.3")
+(defconst pos-tip-version "0.1.7")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -54,6 +54,12 @@
 ;;
 
 ;;; History:
+;; 2010-03-20  S. Irie
+;;         * Added optional argument DY
+;;         * Bug fix
+;;         * Modified docstrings
+;;         * Version 0.1.7
+;;
 ;; 2010-03-18  S. Irie
 ;;         * Added/modifed docstrings
 ;;         * Changed working buffer name to " *xwininfo*"
