@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.7")
+(defconst pos-tip-version "0.1.7.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -368,7 +368,7 @@ Example:
 	(pos-tip-cancel-timer))
     (cons rx ry)))
 
-(defun pos-tip-split-string (string &optional max-width left-margin)
+(defun pos-tip-split-string (string &optional max-width left-margin word-wrap)
   "Split STRING into fixed width strings. Return a list of these strings.
 
 MAX-WIDTH specifies maximum column number of each row. MAX-WIDTH nil means
@@ -376,29 +376,35 @@ use display-width. Note that this function doesn't add any padding characters
 at the end of the result.
 
 The optional 3rd arg LEFT-MARGIN, if non-nil, specifies number of spece
-characters to add at the beginning of each row."
+characters to add at the beginning of each row.
+
+If WORD-WRAP is non-nil, perform word wrap or kinsoku shori (禁則処理)."
   (let* ((display-width (/ (x-display-pixel-width) (frame-char-width)))
-	 (width (or (and max-width
-			 (min max-width display-width))
-		    display-width))
-	 (margin (and left-margin
-		      (make-string left-margin ?\s)))
-	 line row rows)
+	 (fill-column (if max-width
+			  (min max-width display-width)
+			display-width))
+	 (left-margin (or left-margin 0))
+	 (kinsoku-limit 1)
+	 margin row rows)
     (with-temp-buffer
       (insert string)
+      (if word-wrap
+	  (fill-region (point-min) (point-max))
+	(setq margin (make-string left-margin ?\s)))
       (goto-char (point-min))
-      (end-of-line)
       (while (prog2
 		 (let ((string (buffer-substring
-				(line-beginning-position) (point))))
-		   (while (progn
-			    (setq string (concat margin string)
-				  row (truncate-string-to-width string width)
-				  rows (cons row rows))
-			    (if (not (= (length row) (length string)))
-				(setq string (substring string (length row)))))))
+				(point) (progn (end-of-line) (point)))))
+		   (if word-wrap
+		       (push string rows)
+		     (while (progn
+			      (setq string (concat margin string)
+				    row (truncate-string-to-width string fill-column))
+			      (push row rows)
+			      (if (not (= (length row) (length string)))
+				  (setq string (substring string (length row))))))))
 		 (< (point) (point-max))
-	       (end-of-line 2))))
+	       (beginning-of-line 2))))
     (nreverse rows)))
 
 
@@ -486,7 +492,7 @@ object.
 See also `pos-tip-show-no-propertize'."
   (let ((frame (window-frame (or window (selected-window))))
 	(w-h (if max-width
-		 (let ((rows (pos-tip-split-string string max-width)))
+		 (let ((rows (pos-tip-split-string string max-width t)))
 		   (setq string (mapconcat 'identity rows "\n"))
 		   (cons (apply 'max (mapcar 'length rows))
 			 (length rows)))
