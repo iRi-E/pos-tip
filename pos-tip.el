@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.8")
+(defconst pos-tip-version "0.1.8.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -373,17 +373,20 @@ Example:
 	(pos-tip-cancel-timer))
     (cons rx ry)))
 
-(defun pos-tip-split-string (string &optional max-width left-margin word-wrap)
+(defun pos-tip-split-string (string &optional max-width left-margin justify)
   "Split STRING into fixed width strings. Return a list of these strings.
 
 MAX-WIDTH specifies maximum column number of each row. MAX-WIDTH nil means
 use display-width. Note that this function doesn't add any padding characters
 at the end of the result.
 
-The optional 3rd arg LEFT-MARGIN, if non-nil, specifies number of spece
+The optional third arg LEFT-MARGIN, if non-nil, specifies number of spece
 characters to add at the beginning of each row.
 
-If WORD-WRAP is non-nil, perform word wrap or kinsoku shori (禁則処理)."
+The optional fourth argument JUSTIFY specifies which kind of justification
+to do: `full', `left', `right', `center', or `none'. A value of t means handle
+each paragraph as specified by its text properties. Omitting JUSTIFY means
+don't perform justification, word wrap and kinsoku shori (禁則処理)."
   (let* ((display-width (/ (x-display-pixel-width) (frame-char-width)))
 	 (fill-column (if max-width
 			  (min max-width display-width)
@@ -394,7 +397,7 @@ If WORD-WRAP is non-nil, perform word wrap or kinsoku shori (禁則処理)."
     (with-temp-buffer
       (insert string)
       (if word-wrap
-	  (fill-region (point-min) (point-max))
+	  (fill-region (point-min) (point-max) justify)
 	(setq margin (make-string left-margin ?\s)))
       (goto-char (point-min))
       (while (prog2
