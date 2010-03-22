@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip, Dictionary
 
-(defconst sdic-inline-pos-tip-version "0.0.5")
+(defconst sdic-inline-pos-tip-version "0.0.5.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -150,7 +150,7 @@ See `pos-tip-show' for details.")
 			       height (1+ height))
 			 (propertize row 'face 'sdic-inline-pos-tip))
 		       (pos-tip-split-string
-			desc sdic-inline-pos-tip-max-width 1)
+			desc sdic-inline-pos-tip-max-width 1 t)
 		       nl))))
 	  entry nl)
 	 ;; Face which specifies tooltip's background color
