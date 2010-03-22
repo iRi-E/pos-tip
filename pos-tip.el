@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.8.1")
+(defconst pos-tip-version "0.1.8.2")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -415,6 +415,34 @@ don't perform justification, word wrap and kinsoku shori (禁則処理)."
 	       (beginning-of-line 2))))
     (nreverse rows)))
 
+(defun pos-tip-fill-string (string &optional max-width left-margin justify)
+  "Fill each of the paragraphs in STRING.
+
+MAX-WIDTH specifies maximum column number of each row. MAX-WIDTH nil means
+use display-width. Note that this function doesn't add any padding characters
+at the end of the result.
+
+The optional third arg LEFT-MARGIN, if non-nil, specifies number of spece
+characters to add at the beginning of each row.
+
+The optional fourth argument JUSTIFY specifies which kind of justification
+to do: `full', `left', `right', `center', or `none'. A value of t means handle
+each paragraph as specified by its text properties. Omitting JUSTIFY means
+don't perform justification, word wrap and kinsoku shori (禁則処理)."
+  (if justify
+      (let* ((display-width (/ (x-display-pixel-width) (frame-char-width)))
+	     (fill-column (if max-width
+			      (min max-width display-width)
+			    display-width))
+	     (left-margin (or left-margin 0))
+	     (kinsoku-limit 1))
+	(with-temp-buffer
+	  (insert string)
+	  (fill-region (point-min) (point-max) justify)
+      (buffer-string)))
+    (mapconcat 'identity
+	       (pos-tip-split-string string max-width left-margin)
+	       "\n")))
 
 (defun pos-tip-string-width-height (string)
   "Count columns and rows of STRING. Return a cons cell like (WIDTH . HEIGHT).
