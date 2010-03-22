@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip, Dictionary
 
-(defconst sdic-inline-pos-tip-version "0.0.5.1")
+(defconst sdic-inline-pos-tip-version "0.0.6")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -30,6 +30,8 @@
 ;; like `rikaichan' Firefox extension, using sdic-inline.el library
 ;; which was written by khiker.
 
+;; *** This program requires pos-tip.el version 0.1.8 or later. ***
+
 ;;
 ;; Installation:
 ;;
@@ -46,6 +48,11 @@
 ;;
 
 ;;; History:
+;; 2010-03-22  S. Irie
+;;         * Changed to perform word wrap or kinsoku shori
+;;              (** Require pos-tip.el ver. 0.1.8 or later **)
+;;         * Version 0.0.6
+;;
 ;; 2010-03-16  S. Irie
 ;;         * Bug fix
 ;;         * Version 0.0.5
@@ -57,7 +64,7 @@
 ;;
 ;; 2010-03-09  S. Irie
 ;;         * Changed to use `pos-tip-split-string'
-;;              (*Require pos-tip.el ver. 0.1.0 or later*)
+;;              (** Require pos-tip.el ver. 0.1.0 or later **)
 ;;         * Version 0.0.3
 ;;
 ;; 2010-03-08  S. Irie
@@ -69,8 +76,6 @@
 ;;         * Version 0.0.1
 
 ;; ToDo:
-
-;;         * Word wrap
 
 ;;; Code:
 
