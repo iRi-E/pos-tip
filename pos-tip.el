@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.8.8")
+(defconst pos-tip-version "0.1.8.9")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -138,6 +138,10 @@
 
 (defvar pos-tip-background-color "lightyellow"
   "Default background color of pos-tip's tooltip.")
+
+(defvar pos-tip-tab-width nil
+  "Tab width used by `pos-tip-split-string' and `pos-tip-fill-string'.
+nil means use default value of `tab-width'.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions
@@ -391,6 +395,7 @@ don't perform justification, word wrap and kinsoku shori (禁則処理).
 SQUEEZE nil means leave whitespaces other than line breaks untouched."
   (with-temp-buffer
     (let* ((display-width (/ (x-display-pixel-width) (frame-char-width)))
+	   (tab-width (or pos-tip-tab-width tab-width))
 	   (fill-column (if width
 			    (min width display-width)
 			  display-width))
@@ -399,6 +404,7 @@ SQUEEZE nil means leave whitespaces other than line breaks untouched."
 	   indent-tabs-mode
 	   row rows)
       (insert string)
+      (untabify (point-min) (point-max))
       (if word-wrap
 	  (fill-region (point-min) (point-max) justify (not squeeze))
 	(setq margin (make-string left-margin ?\s)))
@@ -437,6 +443,7 @@ SQUEEZE nil means leave whitespaces other than line breaks untouched."
   (if justify
       (with-temp-buffer
 	(let* ((display-width (/ (x-display-pixel-width) (frame-char-width)))
+	       (tab-width (or pos-tip-tab-width tab-width))
 	       (fill-column (if width
 				(min width display-width)
 			      display-width))
@@ -444,6 +451,7 @@ SQUEEZE nil means leave whitespaces other than line breaks untouched."
 	       (kinsoku-limit 1)
 	       indent-tabs-mode)
 	  (insert string)
+	  (untabify (point-min) (point-max))
 	  (fill-region (point-min) (point-max) justify (not squeeze))
 	  (buffer-string)))
     (mapconcat 'identity
