@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip, Dictionary
 
-(defconst sdic-inline-pos-tip-version "0.0.6")
+(defconst sdic-inline-pos-tip-version "0.0.6.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -137,27 +137,26 @@ See `pos-tip-show' for details.")
 	    (height 0)
 	    ;; "\n" should be propertized by the same face as the text
 	    ;; because their height also affect tooltip height.
-	    (nl (propertize "\n" 'face 'sdic-inline-pos-tip)))
+	    (nl-head (propertize "\n" 'face 'sdic-inline-pos-tip-entry))
+	    (nl-desc (propertize "\n" 'face 'sdic-inline-pos-tip)))
 	(pos-tip-show-no-propertize
 	 ;; Arrange string
 	 (mapconcat
 	  (lambda (item)
-	    (let ((head (sdicf-entry-headword item))
-		  (desc (sdicf-entry-text item)))
-	      (setq width (max (string-width head) width)
-		    height (1+ height))
+	    (let* ((head (sdicf-entry-headword item))
+		   ;; Split and justify the description if longer than max-width
+		   (desc (pos-tip-fill-string (sdicf-entry-text item)
+					      sdic-inline-pos-tip-max-width
+					      1 'full))
+		   (w-h (pos-tip-string-width-height desc)))
+	      ;; Calculate tooltip width and height
+	      (setq width (max width (string-width head) (car w-h))
+		    height (+ height 1 (cdr w-h)))
 	      ;; Propertize entry string by appropriate faces
 	      (concat (propertize head 'face 'sdic-inline-pos-tip-entry)
-		      nl
-		      (mapconcat
-		       (lambda (row)
-			 (setq width (max (string-width row) width)
-			       height (1+ height))
-			 (propertize row 'face 'sdic-inline-pos-tip))
-		       (pos-tip-split-string
-			desc sdic-inline-pos-tip-max-width 1 t)
-		       nl))))
-	  entry nl)
+		      nl-head
+		      (propertize desc 'face 'sdic-inline-pos-tip))))
+	  entry nl-desc)
 	 ;; Face which specifies tooltip's background color
 	 'sdic-inline-pos-tip
 	 ;; Display current point, then omit POS and WINDOW
