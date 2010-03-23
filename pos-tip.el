@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.8.4")
+(defconst pos-tip-version "0.1.8.5")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -373,57 +373,57 @@ Example:
 	(pos-tip-cancel-timer))
     (cons rx ry)))
 
-(defun pos-tip-split-string (string &optional max-width left-margin justify)
+(defun pos-tip-split-string (string &optional max-width margin justify)
   "Split STRING into fixed width strings. Return a list of these strings.
 
 MAX-WIDTH specifies maximum column number of each row. MAX-WIDTH nil means
 use display-width. Note that this function doesn't add any padding characters
 at the end of the result.
 
-The optional third arg LEFT-MARGIN, if non-nil, specifies number of spece
+MARGIN, if non-nil, specifies left margin width which is the number of spece
 characters to add at the beginning of each row.
 
 The optional fourth argument JUSTIFY specifies which kind of justification
 to do: `full', `left', `right', `center', or `none'. A value of t means handle
 each paragraph as specified by its text properties. Omitting JUSTIFY means
 don't perform justification, word wrap and kinsoku shori (禁則処理)."
-  (let* ((display-width (/ (x-display-pixel-width) (frame-char-width)))
-	 (fill-column (if max-width
-			  (min max-width display-width)
-			display-width))
-	 (left-margin (or left-margin 0))
-	 (kinsoku-limit 1)
-	 indent-tabs-mode
-	 margin row rows)
-    (with-temp-buffer
+  (with-temp-buffer
+    (let* ((display-width (/ (x-display-pixel-width) (frame-char-width)))
+	   (fill-column (if max-width
+			    (min max-width display-width)
+			  display-width))
+	   (left-margin (or margin 0))
+	   (kinsoku-limit 1)
+	   indent-tabs-mode
+	   row rows)
       (insert string)
       (if word-wrap
 	  (fill-region (point-min) (point-max) justify)
 	(setq margin (make-string left-margin ?\s)))
       (goto-char (point-min))
       (while (prog2
-		 (let ((string (buffer-substring
-				(point) (progn (end-of-line) (point)))))
+		 (let ((line (buffer-substring
+			      (point) (progn (end-of-line) (point)))))
 		   (if word-wrap
-		       (push string rows)
+		       (push line rows)
 		     (while (progn
-			      (setq string (concat margin string)
-				    row (truncate-string-to-width string fill-column))
+			      (setq line (concat margin line)
+				    row (truncate-string-to-width line fill-column))
 			      (push row rows)
-			      (if (not (= (length row) (length string)))
-				  (setq string (substring string (length row))))))))
+			      (if (not (= (length row) (length line)))
+				  (setq line (substring line (length row))))))))
 		 (< (point) (point-max))
-	       (beginning-of-line 2))))
-    (nreverse rows)))
+	       (beginning-of-line 2)))
+      (nreverse rows))))
 
-(defun pos-tip-fill-string (string &optional max-width left-margin justify)
+(defun pos-tip-fill-string (string &optional max-width margin justify)
   "Fill each of the paragraphs in STRING.
 
 MAX-WIDTH specifies maximum column number of each row. MAX-WIDTH nil means
 use display-width. Note that this function doesn't add any padding characters
 at the end of the result.
 
-The optional third arg LEFT-MARGIN, if non-nil, specifies number of spece
+MARGIN, if non-nil, specifies left margin width which is the number of spece
 characters to add at the beginning of each row.
 
 The optional fourth argument JUSTIFY specifies which kind of justification
@@ -431,19 +431,19 @@ to do: `full', `left', `right', `center', or `none'. A value of t means handle
 each paragraph as specified by its text properties. Omitting JUSTIFY means
 don't perform justification, word wrap and kinsoku shori (禁則処理)."
   (if justify
-      (let* ((display-width (/ (x-display-pixel-width) (frame-char-width)))
-	     (fill-column (if max-width
-			      (min max-width display-width)
-			    display-width))
-	     (left-margin (or left-margin 0))
-	     (kinsoku-limit 1)
-	     indent-tabs-mode)
-	(with-temp-buffer
+      (with-temp-buffer
+	(let* ((display-width (/ (x-display-pixel-width) (frame-char-width)))
+	       (fill-column (if max-width
+				(min max-width display-width)
+			      display-width))
+	       (left-margin (or margin 0))
+	       (kinsoku-limit 1)
+	       indent-tabs-mode)
 	  (insert string)
 	  (fill-region (point-min) (point-max) justify)
-      (buffer-string)))
+	  (buffer-string)))
     (mapconcat 'identity
-	       (pos-tip-split-string string max-width left-margin)
+	       (pos-tip-split-string string max-width margin)
 	       "\n")))
 
 (defun pos-tip-string-width-height (string)
