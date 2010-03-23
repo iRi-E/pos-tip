@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.8.6")
+(defconst pos-tip-version "0.1.8.7")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -533,7 +533,7 @@ object.
 
 See also `pos-tip-show-no-propertize'."
   (if max-width
-      (setq string (pos-tip-fill-string string max-width nil 'full)))
+      (setq string (pos-tip-fill-string string max-width nil 'none)))
   (let ((frame (window-frame (or window (selected-window))))
 	(w-h (pos-tip-string-width-height string)))
     (face-spec-reset-face 'pos-tip-temp)
