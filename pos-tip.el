@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.8.2")
+(defconst pos-tip-version "0.1.8.3")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -393,6 +393,7 @@ don't perform justification, word wrap and kinsoku shori (禁則処理)."
 			display-width))
 	 (left-margin (or left-margin 0))
 	 (kinsoku-limit 1)
+	 indent-tabs-mode
 	 margin row rows)
     (with-temp-buffer
       (insert string)
@@ -435,7 +436,8 @@ don't perform justification, word wrap and kinsoku shori (禁則処理)."
 			      (min max-width display-width)
 			    display-width))
 	     (left-margin (or left-margin 0))
-	     (kinsoku-limit 1))
+	     (kinsoku-limit 1)
+	     indent-tabs-mode)
 	(with-temp-buffer
 	  (insert string)
 	  (fill-region (point-min) (point-max) justify)
