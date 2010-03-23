@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.8.9")
+(defconst pos-tip-version "0.2.0")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -54,6 +54,14 @@
 ;;
 
 ;;; History:
+;; 2010-03-23  S. Irie
+;;         * Changed argument WORD-WRAP to JUSTIFY
+;;         * Added optional argument SQUEEZE
+;;         * Added function `pos-tip-fill-string'
+;;         * Added option `pos-tip-tab-width' used to expand tab characters
+;;         * Bug fixes
+;;         * Version 0.2.0
+;;
 ;; 2010-03-22  S. Irie
 ;;         * Added optional argument WORD-WRAP to `pos-tip-split-string'
 ;;         * Changed `pos-tip-show' to perform word wrap or kinsoku shori
