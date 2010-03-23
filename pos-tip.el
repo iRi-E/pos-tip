@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.8.5")
+(defconst pos-tip-version "0.1.8.6")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -373,7 +373,7 @@ Example:
 	(pos-tip-cancel-timer))
     (cons rx ry)))
 
-(defun pos-tip-split-string (string &optional max-width margin justify)
+(defun pos-tip-split-string (string &optional max-width margin justify squeeze)
   "Split STRING into fixed width strings. Return a list of these strings.
 
 MAX-WIDTH specifies maximum column number of each row. MAX-WIDTH nil means
@@ -386,7 +386,9 @@ characters to add at the beginning of each row.
 The optional fourth argument JUSTIFY specifies which kind of justification
 to do: `full', `left', `right', `center', or `none'. A value of t means handle
 each paragraph as specified by its text properties. Omitting JUSTIFY means
-don't perform justification, word wrap and kinsoku shori (禁則処理)."
+don't perform justification, word wrap and kinsoku shori (禁則処理).
+
+SQUEEZE nil means leave whitespaces other than line breaks untouched."
   (with-temp-buffer
     (let* ((display-width (/ (x-display-pixel-width) (frame-char-width)))
 	   (fill-column (if max-width
@@ -398,7 +400,7 @@ don't perform justification, word wrap and kinsoku shori (禁則処理)."
 	   row rows)
       (insert string)
       (if word-wrap
-	  (fill-region (point-min) (point-max) justify)
+	  (fill-region (point-min) (point-max) justify (not squeeze))
 	(setq margin (make-string left-margin ?\s)))
       (goto-char (point-min))
       (while (prog2
@@ -416,7 +418,7 @@ don't perform justification, word wrap and kinsoku shori (禁則処理)."
 	       (beginning-of-line 2)))
       (nreverse rows))))
 
-(defun pos-tip-fill-string (string &optional max-width margin justify)
+(defun pos-tip-fill-string (string &optional max-width margin justify squeeze)
   "Fill each of the paragraphs in STRING.
 
 MAX-WIDTH specifies maximum column number of each row. MAX-WIDTH nil means
@@ -429,7 +431,9 @@ characters to add at the beginning of each row.
 The optional fourth argument JUSTIFY specifies which kind of justification
 to do: `full', `left', `right', `center', or `none'. A value of t means handle
 each paragraph as specified by its text properties. Omitting JUSTIFY means
-don't perform justification, word wrap and kinsoku shori (禁則処理)."
+don't perform justification, word wrap and kinsoku shori (禁則処理).
+
+SQUEEZE nil means leave whitespaces other than line breaks untouched."
   (if justify
       (with-temp-buffer
 	(let* ((display-width (/ (x-display-pixel-width) (frame-char-width)))
@@ -440,7 +444,7 @@ don't perform justification, word wrap and kinsoku shori (禁則処理)."
 	       (kinsoku-limit 1)
 	       indent-tabs-mode)
 	  (insert string)
-	  (fill-region (point-min) (point-max) justify)
+	  (fill-region (point-min) (point-max) justify (not squeeze))
 	  (buffer-string)))
     (mapconcat 'identity
 	       (pos-tip-split-string string max-width margin)
