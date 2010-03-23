@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.8.7")
+(defconst pos-tip-version "0.1.8.8")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -373,12 +373,12 @@ Example:
 	(pos-tip-cancel-timer))
     (cons rx ry)))
 
-(defun pos-tip-split-string (string &optional max-width margin justify squeeze)
+(defun pos-tip-split-string (string &optional width margin justify squeeze)
   "Split STRING into fixed width strings. Return a list of these strings.
 
-MAX-WIDTH specifies maximum column number of each row. MAX-WIDTH nil means
-use display-width. Note that this function doesn't add any padding characters
-at the end of the result.
+WIDTH specifies the width of filling each paragraph. WIDTH nil means use
+display width. Note that this function doesn't add any padding characters at
+the end of each row.
 
 MARGIN, if non-nil, specifies left margin width which is the number of spece
 characters to add at the beginning of each row.
@@ -391,8 +391,8 @@ don't perform justification, word wrap and kinsoku shori (禁則処理).
 SQUEEZE nil means leave whitespaces other than line breaks untouched."
   (with-temp-buffer
     (let* ((display-width (/ (x-display-pixel-width) (frame-char-width)))
-	   (fill-column (if max-width
-			    (min max-width display-width)
+	   (fill-column (if width
+			    (min width display-width)
 			  display-width))
 	   (left-margin (or margin 0))
 	   (kinsoku-limit 1)
@@ -418,12 +418,12 @@ SQUEEZE nil means leave whitespaces other than line breaks untouched."
 	       (beginning-of-line 2)))
       (nreverse rows))))
 
-(defun pos-tip-fill-string (string &optional max-width margin justify squeeze)
+(defun pos-tip-fill-string (string &optional width margin justify squeeze)
   "Fill each of the paragraphs in STRING.
 
-MAX-WIDTH specifies maximum column number of each row. MAX-WIDTH nil means
-use display-width. Note that this function doesn't add any padding characters
-at the end of the result.
+WIDTH specifies the width of filling each paragraph. WIDTH nil means use
+display width. Note that this function doesn't add any padding characters at
+the end of each row.
 
 MARGIN, if non-nil, specifies left margin width which is the number of spece
 characters to add at the beginning of each row.
@@ -437,8 +437,8 @@ SQUEEZE nil means leave whitespaces other than line breaks untouched."
   (if justify
       (with-temp-buffer
 	(let* ((display-width (/ (x-display-pixel-width) (frame-char-width)))
-	       (fill-column (if max-width
-				(min max-width display-width)
+	       (fill-column (if width
+				(min width display-width)
 			      display-width))
 	       (left-margin (or margin 0))
 	       (kinsoku-limit 1)
@@ -447,7 +447,7 @@ SQUEEZE nil means leave whitespaces other than line breaks untouched."
 	  (fill-region (point-min) (point-max) justify (not squeeze))
 	  (buffer-string)))
     (mapconcat 'identity
-	       (pos-tip-split-string string max-width margin)
+	       (pos-tip-split-string string width margin)
 	       "\n")))
 
 (defun pos-tip-string-width-height (string)
@@ -494,7 +494,7 @@ Example:
 (make-face 'pos-tip-temp)
 
 (defun pos-tip-show
-  (string &optional tip-color pos window timeout max-width frame-coordinates dx dy)
+  (string &optional tip-color pos window timeout width frame-coordinates dx dy)
   "Show STRING in a tooltip, which is a small X window, at POS in WINDOW
 using frame's default font with TIP-COLOR.
 
@@ -513,7 +513,7 @@ Automatically hide the tooltip after TIMEOUT seconds. Omitting TIMEOUT means
 use the default timeout of 5 seconds. Non-positive TIMEOUT means don't hide
 tooltip automatically.
 
-MAX-WIDTH specifies the maximum number of columns, if non-nil.
+WIDTH, if non-nil, specifies the width of filling each paragraph.
 
 If FRAME-COORDINATES is omitted, automatically obtain the absolute
 coordinates of the top left corner of frame which WINDOW is on. Here,
@@ -532,8 +532,8 @@ object at POS and show tooltip at appropriate location not to hide the
 object.
 
 See also `pos-tip-show-no-propertize'."
-  (if max-width
-      (setq string (pos-tip-fill-string string max-width nil 'none)))
+  (if width
+      (setq string (pos-tip-fill-string string width nil 'none)))
   (let ((frame (window-frame (or window (selected-window))))
 	(w-h (pos-tip-string-width-height string)))
     (face-spec-reset-face 'pos-tip-temp)
