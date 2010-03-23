@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.1.8.3")
+(defconst pos-tip-version "0.1.8.4")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -528,13 +528,10 @@ object at POS and show tooltip at appropriate location not to hide the
 object.
 
 See also `pos-tip-show-no-propertize'."
+  (if max-width
+      (setq string (pos-tip-fill-string string max-width nil 'full)))
   (let ((frame (window-frame (or window (selected-window))))
-	(w-h (if max-width
-		 (let ((rows (pos-tip-split-string string max-width t)))
-		   (setq string (mapconcat 'identity rows "\n"))
-		   (cons (apply 'max (mapcar 'length rows))
-			 (length rows)))
-	       (pos-tip-string-width-height string))))
+	(w-h (pos-tip-string-width-height string)))
     (face-spec-reset-face 'pos-tip-temp)
     (set-face-font 'pos-tip-temp (frame-parameter frame 'font))
     (pos-tip-show-no-propertize
