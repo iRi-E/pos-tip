@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.2.0")
+(defconst pos-tip-version "0.2.0.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -216,17 +216,17 @@ DX specifies horizontal offset in pixel.
 DY specifies vertical offset in pixel. Omitting DY means use the height of
 object at POS and adjust the coordinates so that tooltip won't hide the
 object."
-  (unless frame-coordinates
-    (pos-tip-frame-top-left-coordinates
-     (window-frame (or window (selected-window)))))
-  (let* ((x-y (or (pos-visible-in-window-p (or pos (window-point window)) window t)
+  (let* ((frame (window-frame (or window (selected-window))))
+	 (frame-coord (or frame-coordinates
+			  (pos-tip-frame-top-left-coordinates frame)))
+	 (x-y (or (pos-visible-in-window-p (or pos (window-point window)) window t)
 		  '(0 0)))
-	 (ax (+ (car pos-tip-saved-frame-coordinates)
-		(car (window-inside-pixel-edges))
+	 (ax (+ (car frame-coord)
+		(car (window-inside-pixel-edges window))
 		(car x-y)
 		(or dx 0)))
-	 (ay0 (+ (cdr pos-tip-saved-frame-coordinates)
-		 (cadr (window-pixel-edges))
+	 (ay0 (+ (cdr frame-coord)
+		 (cadr (window-pixel-edges window))
 		 (cadr x-y)))
 	 (ay (+ ay0
 		(or dy
@@ -235,7 +235,7 @@ object."
 		    ;; In this case, `frame-char-height' is used substitutively,
 		    ;; but this function doesn't return actual object height.
 		    (and header-line-format
-			 (frame-char-height))
+			 (frame-char-height frame))
 		    (cdr (posn-object-width-height
 			  (posn-at-x-y (max (car x-y) 0) (cadr x-y))))))))
     (setq pos-tip-upperside-p (> (+ ay (or pixel-height 0))
