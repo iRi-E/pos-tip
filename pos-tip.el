@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.2.0.1")
+(defconst pos-tip-version "0.2.0.2")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -254,12 +254,13 @@ object."
 
 (defun pos-tip-avoid-mouse (left right top bottom &optional frame)
   "Move out mouse pointer if it is inside region (LEFT RIGHT TOP BOTTOM)
-in FRAME."
+in FRAME. Return new mouse position like (FRAME . (X . Y))."
   (let* ((mpos (mouse-pixel-position))
 	 (mframe (pop mpos))
 	 (mx (car mpos))
 	 (my (cdr mpos)))
-    (when (numberp mx)
+    (when (and (eq mframe (or frame (selected-frame)))
+	       (numberp mx))
       (let* ((large-number (+ (x-display-pixel-width) (x-display-pixel-height)))
 	     (dl (if (> left 2)
 		     (1+ (- mx left))
@@ -274,18 +275,18 @@ in FRAME."
 		     (- bottom my)
 		   large-number))
 	     (d (min dl dr dt db)))
-	(when (and mpos
-		   (eq (or frame (selected-frame)) mframe)
-		   (> d -2))
+	(when (> d -2)
 	  (cond
 	   ((= d dl)
-	    (set-mouse-pixel-position mframe (- left 2) my))
+	    (setq mx (- left 2)))
 	   ((= d dr)
-	    (set-mouse-pixel-position mframe (1+ right) my))
+	    (setq mx (1+ right)))
 	   ((= d dt)
-	    (set-mouse-pixel-position mframe mx (- top 2)))
+	    (setq my (- top 2)))
 	   (t
-	    (set-mouse-pixel-position mframe mx (1+ bottom)))))))))
+	    (setq my (1+ bottom))))
+	  (set-mouse-pixel-position mframe mx my))))
+    (cons mframe (and mpos (cons mx my)))))
 
 (defvar pos-tip-default-char-width-height-alist nil
  "Alist of default character sizes of each display." )
