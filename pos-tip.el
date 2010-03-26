@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.2.0.2")
+(defconst pos-tip-version "0.2.0.3")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -255,23 +255,25 @@ object."
 (defun pos-tip-avoid-mouse (left right top bottom &optional frame)
   "Move out mouse pointer if it is inside region (LEFT RIGHT TOP BOTTOM)
 in FRAME. Return new mouse position like (FRAME . (X . Y))."
+  (unless frame
+    (setq frame (selected-frame)))
   (let* ((mpos (mouse-pixel-position))
 	 (mframe (pop mpos))
 	 (mx (car mpos))
 	 (my (cdr mpos)))
-    (when (and (eq mframe (or frame (selected-frame)))
+    (when (and (eq mframe frame)
 	       (numberp mx))
-      (let* ((large-number (+ (x-display-pixel-width) (x-display-pixel-height)))
+      (let* ((large-number (+ (frame-pixel-width frame) (frame-pixel-height frame)))
 	     (dl (if (> left 2)
 		     (1+ (- mx left))
 		   large-number))
-	     (dr (if (< (1+ right) (x-display-pixel-width))
+	     (dr (if (< (1+ right) (frame-pixel-width frame))
 		     (- right mx)
 		   large-number))
 	     (dt (if (> top 2)
 		     (1+ (- my top))
 		   large-number))
-	     (db (if (< (1+ bottom) (x-display-pixel-height))
+	     (db (if (< (1+ bottom) (frame-pixel-height frame))
 		     (- bottom my)
 		   large-number))
 	     (d (min dl dr dt db)))
@@ -285,7 +287,7 @@ in FRAME. Return new mouse position like (FRAME . (X . Y))."
 	    (setq my (- top 2)))
 	   (t
 	    (setq my (1+ bottom))))
-	  (set-mouse-pixel-position mframe mx my))))
+	  (set-mouse-pixel-position frame mx my))))
     (cons mframe (and mpos (cons mx my)))))
 
 (defvar pos-tip-default-char-width-height-alist nil
