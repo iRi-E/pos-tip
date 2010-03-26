@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.2.0.3")
+(defconst pos-tip-version "0.2.0.4")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -216,34 +216,47 @@ DX specifies horizontal offset in pixel.
 DY specifies vertical offset in pixel. Omitting DY means use the height of
 object at POS and adjust the coordinates so that tooltip won't hide the
 object."
-  (let* ((frame (window-frame (or window (selected-window))))
-	 (frame-coord (or frame-coordinates
+  (let* ((relative (or (eq frame-coordinates 'relative)
+		       (not (eq window-system 'x))))
+	 (frame (window-frame (or window (selected-window))))
+	 (frame-coord (or (and relative '(0 . 0))
+			  frame-coordinates
 			  (pos-tip-frame-top-left-coordinates frame)))
 	 (x-y (or (pos-visible-in-window-p (or pos (window-point window)) window t)
 		  '(0 0)))
-	 (ax (+ (car frame-coord)
-		(car (window-inside-pixel-edges window))
-		(car x-y)
-		(or dx 0)))
-	 (ay0 (+ (cdr frame-coord)
-		 (cadr (window-pixel-edges window))
-		 (cadr x-y)))
-	 (ay (+ ay0
-		(or dy
-		    ;; `posn-object-width-height' returns an incorrect value
-		    ;; when the header line is displayed (Emacs bug #4426).
-		    ;; In this case, `frame-char-height' is used substitutively,
-		    ;; but this function doesn't return actual object height.
-		    (and header-line-format
-			 (frame-char-height frame))
-		    (cdr (posn-object-width-height
-			  (posn-at-x-y (max (car x-y) 0) (cadr x-y))))))))
-    (setq pos-tip-upperside-p (> (+ ay (or pixel-height 0))
-				 (x-display-pixel-height)))
-    (cons (max 0 (min ax (- (x-display-pixel-width) (or pixel-width 0))))
+	 (x (+ (car frame-coord)
+	       (car (window-inside-pixel-edges window))
+	       (car x-y)
+	       (or dx 0)))
+	 (y0 (+ (cdr frame-coord)
+		(cadr (window-pixel-edges window))
+		(cadr x-y)))
+	 (y (+ y0
+	       (or dy
+		   ;; `posn-object-width-height' returns an incorrect value
+		   ;; when the header line is displayed (Emacs bug #4426).
+		   ;; In this case, `frame-char-height' is used substitutively,
+		   ;; but this function doesn't return actual object height.
+		   (and header-line-format
+			(frame-char-height frame))
+		   (cdr (posn-object-width-height
+			 (posn-at-x-y (max (car x-y) 0) (cadr x-y))))))))
+    (setq pos-tip-upperside-p (> (+ y (or pixel-height 0))
+				 (if relative
+				     (frame-pixel-height frame)
+				   (x-display-pixel-height))))
+    (cons (max 0 (min x (- (if relative
+			       (frame-pixel-width frame)
+			     (x-display-pixel-width))
+			   (or pixel-width 0))))
 	  (max 0 (if pos-tip-upperside-p
-		     (- (if dy (x-display-pixel-height) ay0) (or pixel-height 0))
-		   ay)))))
+		     (- (if dy
+			    (if relative
+				(frame-pixel-height frame)
+			      (x-display-pixel-height))
+			  y0)
+			(or pixel-height 0))
+		   y)))))
 
 (defun pos-tip-cancel-timer ()
   "Cancel timeout of tooltip."
@@ -290,28 +303,6 @@ in FRAME. Return new mouse position like (FRAME . (X . Y))."
 	  (set-mouse-pixel-position frame mx my))))
     (cons mframe (and mpos (cons mx my)))))
 
-(defvar pos-tip-default-char-width-height-alist nil
- "Alist of default character sizes of each display." )
-
-(defun pos-tip-default-char-width-height ()
-  "Return default character size of display which selected frame is in
-as a cons cell like (WIDTH . HEIGHT)."
-  (when (display-graphic-p)
-    (let* ((display (frame-parameter nil 'display))
-	   (w-h (cdr (assoc display pos-tip-default-char-width-height-alist))))
-      (unless w-h
-	(let ((frame (x-create-frame '((visibility . nil)
-				       (minibuffer . nil)
-				       (menu-bar-lines . nil)
-				       (tool-bar-lines . nil)
-				       (vertical-scroll-bars . nil)))))
-	  (setq w-h (cons (frame-char-width frame)
-			  (frame-char-height frame)))
-	  (delete-frame frame))
-	(push (cons display w-h)
-	      pos-tip-default-char-width-height-alist))
-      w-h)))
-
 (defun pos-tip-show-no-propertize
   (string &optional tip-color pos window timeout pixel-width pixel-height frame-coordinates dx dy)
   "Show STRING in a tooltip at POS in WINDOW.
@@ -349,12 +340,14 @@ Example:
 \(let ((str (propertize \" foo \\n bar \\n baz \" 'face 'my-tooltip)))
   (put-text-property 6 11 'face 'my-tooltip-highlight str)
   (pos-tip-show-no-propertize str 'my-tooltip))"
-  (let* ((x-y (pos-tip-compute-pixel-position pos window pixel-width pixel-height
+  (let* ((relative (or (eq frame-coordinates 'relative)
+		       (not (eq window-system 'x))))
+	 (x-y (pos-tip-compute-pixel-position pos window pixel-width pixel-height
 					      frame-coordinates dx dy))
 	 (ax (car x-y))
 	 (ay (cdr x-y))
-	 (rx (- ax (car pos-tip-saved-frame-coordinates)))
-	 (ry (- ay (cdr pos-tip-saved-frame-coordinates)))
+	 (rx (if relative ax (- ax (car pos-tip-saved-frame-coordinates))))
+	 (ry (if relative ay (- ay (cdr pos-tip-saved-frame-coordinates))))
 	 (fg (or (and (facep tip-color)
 		      (face-attribute tip-color :foreground))
 		 (car-safe tip-color)
@@ -364,26 +357,40 @@ Example:
 		 (cdr-safe tip-color)
 		 pos-tip-background-color))
 	 (frame (window-frame (or window (selected-window))))
-	 (char-w-h (pos-tip-default-char-width-height))
+	 (spacing (frame-parameter frame 'line-spacing))
 	 (x-max-tooltip-size
 	  (cons (1+ (/ (or pixel-width
-			   (x-display-pixel-width))
-		       (car char-w-h)))
+			   (if relative
+			       (frame-pixel-width frame)
+			     (x-display-pixel-width)))
+		       (frame-char-width frame)))
 		(1+ (/ (or pixel-height
 			   (x-display-pixel-height))
-		       (cdr char-w-h))))))
+		       (frame-char-height frame)))))
+	 mpos)
+    (unless (or (not relative)
+		(and (setq mpos (mouse-pixel-position))
+		     (eq frame (car mpos)) (cadr mpos) (cddr mpos)))
+      (let* ((edges (window-inside-pixel-edges (frame-first-window frame)))
+	     (mx (car edges))
+	     (my (cadr edges)))
+	(set-mouse-pixel-position frame mx my)))
     (and pixel-width pixel-height
-	 (pos-tip-avoid-mouse rx (+ rx pixel-width)
-			      ry (+ ry pixel-height)
-			      frame))
+	 (setq mpos (pos-tip-avoid-mouse rx (+ rx pixel-width)
+					 ry (+ ry pixel-height)
+					 frame)))
     (x-show-tip string frame
 		`((border-width . ,pos-tip-border-width)
 		  (internal-border-width . ,pos-tip-internal-border-width)
-		  (left . ,ax)
-		  (top . ,ay)
+		  ,@(and (not relative) `((left . ,ax)
+					  (top . ,ay)))
+		  (font . ,(frame-parameter frame 'font))
+		  ,@(and spacing `((line-spacing . ,spacing)))
 		  ,@(and (stringp fg) `((foreground-color . ,fg)))
 		  ,@(and (stringp bg) `((background-color . ,bg))))
-		(and timeout (> timeout 0) timeout))
+		(and timeout (> timeout 0) timeout)
+		(and relative (- rx (cadr mpos)))
+		(and relative (- ry (cddr mpos))))
     (if (and timeout (<= timeout 0))
 	(pos-tip-cancel-timer))
     (cons rx ry)))
@@ -392,8 +399,8 @@ Example:
   "Split STRING into fixed width strings. Return a list of these strings.
 
 WIDTH specifies the width of filling each paragraph. WIDTH nil means use
-display width. Note that this function doesn't add any padding characters at
-the end of each row.
+the width of currently selected frame. Note that this function doesn't add any
+padding characters at the end of each row.
 
 MARGIN, if non-nil, specifies left margin width which is the number of spece
 characters to add at the beginning of each row.
@@ -405,11 +412,8 @@ don't perform justification, word wrap and kinsoku shori (禁則処理).
 
 SQUEEZE nil means leave whitespaces other than line breaks untouched."
   (with-temp-buffer
-    (let* ((display-width (/ (x-display-pixel-width) (frame-char-width)))
-	   (tab-width (or pos-tip-tab-width tab-width))
-	   (fill-column (if width
-			    (min width display-width)
-			  display-width))
+    (let* ((tab-width (or pos-tip-tab-width tab-width))
+	   (fill-column (or width (frame-width)))
 	   (left-margin (or margin 0))
 	   (kinsoku-limit 1)
 	   indent-tabs-mode
@@ -439,8 +443,8 @@ SQUEEZE nil means leave whitespaces other than line breaks untouched."
   "Fill each of the paragraphs in STRING.
 
 WIDTH specifies the width of filling each paragraph. WIDTH nil means use
-display width. Note that this function doesn't add any padding characters at
-the end of each row.
+the width of currently selected frame. Note that this function doesn't add any
+padding characters at the end of each row.
 
 MARGIN, if non-nil, specifies left margin width which is the number of spece
 characters to add at the beginning of each row.
@@ -453,11 +457,8 @@ don't perform justification, word wrap and kinsoku shori (禁則処理).
 SQUEEZE nil means leave whitespaces other than line breaks untouched."
   (if justify
       (with-temp-buffer
-	(let* ((display-width (/ (x-display-pixel-width) (frame-char-width)))
-	       (tab-width (or pos-tip-tab-width tab-width))
-	       (fill-column (if width
-				(min width display-width)
-			      display-width))
+	(let* ((tab-width (or pos-tip-tab-width tab-width))
+	       (fill-column (or width (frame-width)))
 	       (left-margin (or margin 0))
 	       (kinsoku-limit 1)
 	       indent-tabs-mode)
@@ -495,15 +496,16 @@ Example:
 	     pos-tip-internal-border-width)
 	  1)))
 
-(defun pos-tip-tooltip-height (height char-height)
+(defun pos-tip-tooltip-height (height char-height &optional frame)
   "Calculate tooltip pixel height."
-  (let ((spacing (default-value 'line-spacing)))
+  (let ((spacing (or (default-value 'line-spacing)
+		     (frame-parameter frame 'line-spacing))))
     (+ (* height (+ char-height
 		    (cond
 		     ((integerp spacing)
 		      spacing)
 		     ((floatp spacing)
-		      (truncate (* (cdr (pos-tip-default-char-width-height))
+		      (truncate (* (frame-char-height frame)
 				   spacing)))
 		     (t 0))))
        (ash (+ pos-tip-border-width
@@ -561,7 +563,7 @@ See also `pos-tip-show-no-propertize'."
      (propertize string 'face 'pos-tip-temp)
      tip-color pos window timeout
      (pos-tip-tooltip-width (car w-h) (frame-char-width frame))
-     (pos-tip-tooltip-height (cdr w-h) (frame-char-height frame))
+     (pos-tip-tooltip-height (cdr w-h) (frame-char-height frame) frame)
      frame-coordinates dx dy)))
 
 (defalias 'pos-tip-hide 'x-hide-tip
