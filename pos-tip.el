@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.2.0.5")
+(defconst pos-tip-version "0.2.0.6")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -151,12 +151,45 @@
   "Tab width used by `pos-tip-split-string' and `pos-tip-fill-string'.
 nil means use default value of `tab-width'.")
 
+(defvar pos-tip-use-relative-coordinates nil
+  "Non-nil means tooltip location is calculated as a coordinates
+relative to the top left corner of frame. In this case the tooltip
+will always be displayed within the frame.
+
+Note that this variable is automatically set to non-nil if absolute
+coordinates can't be obtained by `pos-tip-compute-pixel-position'.")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun pos-tip-window-system (&optional frame)
+  "The name of the window system that FRAME is displaying through.
+The value is a symbol---for instance, 'x' for X windows.
+The value is nil if Emacs is using a text-only terminal.
+
+FRAME defaults to the currently selected frame."
+  (cond
+   ((fboundp 'window-system)
+    (window-system frame)) ; Emacs 23
+   (frame
+    (if (fboundp 'with-selected-frame)
+	(with-selected-frame frame
+	  window-system)
+      (let ((orig-frame (selected-frame)))
+	(select-frame frame)
+	(prog1
+	    window-system
+	  (select-frame orig-frame)))))
+   (t
+    window-system)))
+
 (defvar pos-tip-saved-frame-coordinates '(0 . 0)
   "The latest result of `pos-tip-frame-top-left-coordinates'.")
+
+(defvar pos-tip-frame-offset nil
+  "The latest result of `pos-tip-calibrate-frame-offset'. This value
+is used for non-X graphical environment.")
 
 (defun pos-tip-frame-top-left-coordinates (&optional frame)
   "Return the pixel coordinates of FRAME as a cons cell (LEFT . TOP),
@@ -166,25 +199,42 @@ If FRAME is omitted, use selected-frame.
 
 Users can also get the frame coordinates by referring the variable
 `pos-tip-saved-frame-coordinates' just after calling this function."
-  (with-current-buffer (get-buffer-create " *xwininfo*")
-    (let ((case-fold-search nil))
-      (buffer-disable-undo)
-      (erase-buffer)
-      (call-process shell-file-name nil t nil shell-command-switch
-		    (concat "xwininfo -id " (frame-parameter frame 'window-id)))
-      (goto-char (point-min))
-      (search-forward "\n  Absolute")
-      (setq pos-tip-saved-frame-coordinates
-	    (cons (progn (string-to-number (buffer-substring-no-properties
-					    (search-forward "X: ")
-					    (line-end-position))))
-		  (progn (string-to-number (buffer-substring-no-properties
-					    (search-forward "Y: ")
-					    (line-end-position)))))))))
+  (let ((winsys (pos-tip-window-system)))
+    (cond
+     ((null winsys)
+      (error "text-only frame: %S" frame))
+     ((eq winsys 'x)
+      (ignore-errors
+	(with-current-buffer (get-buffer-create " *xwininfo*")
+	  (let ((case-fold-search nil))
+	    (buffer-disable-undo)
+	    (erase-buffer)
+	    (call-process shell-file-name nil t nil shell-command-switch
+			  (concat "xwininfo -id "
+				  (frame-parameter frame 'window-id)))
+	    (goto-char (point-min))
+	    (search-forward "\n  Absolute")
+	    (setq pos-tip-saved-frame-coordinates
+		  (cons (string-to-number (buffer-substring-no-properties
+					   (search-forward "X: ")
+					   (line-end-position)))
+			(string-to-number (buffer-substring-no-properties
+					   (search-forward "Y: ")
+					   (line-end-position)))))))))
+     (t
+      (and (or pos-tip-frame-offset
+	       (pos-tip-calibrate-frame-offset frame))
+	   (setq pos-tip-saved-frame-coordinates
+		 (cons (+ (eval (frame-parameter frame 'left))
+			  (car pos-tip-frame-offset))
+		       (+ (eval (frame-parameter frame 'top))
+			  (cdr pos-tip-frame-offset)))))))))
 
 (defvar pos-tip-upperside-p nil
   "Non-nil indicates the latest result of `pos-tip-compute-pixel-position'
 was upper than the location specified by the arguments.")
+
+(defvar pos-tip-w32-saved-max-width-height nil)
 
 (defun pos-tip-compute-pixel-position
   (&optional pos window pixel-width pixel-height frame-coordinates dx dy)
@@ -216,12 +266,19 @@ DX specifies horizontal offset in pixel.
 DY specifies vertical offset in pixel. Omitting DY means use the height of
 object at POS and adjust the coordinates so that tooltip won't hide the
 object."
-  (let* ((relative (or (eq frame-coordinates 'relative)
-		       (not (eq window-system 'x))))
-	 (frame (window-frame (or window (selected-window))))
+  (let* ((frame (window-frame (or window (selected-window))))
+	 (w32-frame (eq (pos-tip-window-system frame) 'w32))
+	 (relative (or pos-tip-use-relative-coordinates
+		       (eq frame-coordinates 'relative)
+		       (and w32-frame
+			    (null pos-tip-w32-saved-max-width-height))))
 	 (frame-coord (or (and relative '(0 . 0))
 			  frame-coordinates
-			  (pos-tip-frame-top-left-coordinates frame)))
+			  (pos-tip-frame-top-left-coordinates frame)
+			  (progn
+			    (setq relative t
+				  pos-tip-use-relative-coordinates t)
+			  '(0 . 0))))
 	 (x-y (or (pos-visible-in-window-p (or pos (window-point window)) window t)
 		  '(0 0)))
 	 (x (+ (car frame-coord)
@@ -240,22 +297,23 @@ object."
 		   (and header-line-format
 			(frame-char-height frame))
 		   (cdr (posn-object-width-height
-			 (posn-at-x-y (max (car x-y) 0) (cadr x-y))))))))
+			 (posn-at-x-y (max (car x-y) 0) (cadr x-y)))))))
+	 xmax ymax)
+    (cond
+     (relative
+      (setq xmax (frame-pixel-width frame)
+	    ymax (frame-pixel-height frame)))
+     (w32-frame
+      (setq xmax (car pos-tip-w32-saved-max-width-height)
+	    ymax (cdr pos-tip-w32-saved-max-width-height)))
+     (t
+      (setq xmax (x-display-pixel-width)
+	    ymax (x-display-pixel-height))))
     (setq pos-tip-upperside-p (> (+ y (or pixel-height 0))
-				 (if relative
-				     (frame-pixel-height frame)
-				   (x-display-pixel-height))))
-    (cons (max 0 (min x (- (if relative
-			       (frame-pixel-width frame)
-			     (x-display-pixel-width))
-			   (or pixel-width 0))))
+				 ymax))
+    (cons (max 0 (min x (- xmax (or pixel-width 0))))
 	  (max 0 (if pos-tip-upperside-p
-		     (- (if dy
-			    (if relative
-				(frame-pixel-height frame)
-			      (x-display-pixel-height))
-			  y0)
-			(or pixel-height 0))
+		     (- (if dy ymax y0) (or pixel-height 0))
 		   y)))))
 
 (defun pos-tip-cancel-timer ()
@@ -340,10 +398,20 @@ Example:
 \(let ((str (propertize \" foo \\n bar \\n baz \" 'face 'my-tooltip)))
   (put-text-property 6 11 'face 'my-tooltip-highlight str)
   (pos-tip-show-no-propertize str 'my-tooltip))"
-  (let* ((relative (or (eq frame-coordinates 'relative)
-		       (not (eq window-system 'x))))
-	 (x-y (pos-tip-compute-pixel-position pos window pixel-width pixel-height
-					      frame-coordinates dx dy))
+  (let* ((frame (window-frame (or window (selected-window))))
+	 (winsys (pos-tip-window-system frame))
+	 (x-frame (eq winsys 'x))
+	 (w32-frame (eq winsys 'w32))
+	 (relative (or pos-tip-use-relative-coordinates
+		       (eq frame-coordinates 'relative)
+		       (and w32-frame
+			    (null pos-tip-w32-saved-max-width-height))))
+	 (x-y (prog1
+		  (pos-tip-compute-pixel-position pos window
+						  pixel-width pixel-height
+						  frame-coordinates dx dy)
+		(if pos-tip-use-relative-coordinates
+		    (setq relative t))))
 	 (ax (car x-y))
 	 (ay (cdr x-y))
 	 (rx (if relative ax (- ax (car pos-tip-saved-frame-coordinates))))
@@ -356,17 +424,22 @@ Example:
 		      (face-attribute tip-color :background))
 		 (cdr-safe tip-color)
 		 pos-tip-background-color))
-	 (frame (window-frame (or window (selected-window))))
+	 (use-dxdy (or relative
+		       (not x-frame)))
 	 (spacing (frame-parameter frame 'line-spacing))
 	 (border (ash (+ pos-tip-border-width
 			 pos-tip-internal-border-width)
 		      1))
 	 (x-max-tooltip-size
-	  (cons (+ (if (eq (window-system frame) 'x) 1 0)
+	  (cons (+ (if x-frame 1 0)
 		   (/ (- (or pixel-width
-			     (if relative
-				 (frame-pixel-width frame)
-			       (x-display-pixel-width)))
+			     (cond
+			      (relative
+			       (frame-pixel-width frame))
+			      (w32-frame
+			       (car pos-tip-w32-saved-max-width-height))
+			      (t
+			       (x-display-pixel-width))))
 			 border)
 		      (frame-char-width frame)))
 		(/ (- (or pixel-height
@@ -374,7 +447,7 @@ Example:
 		      border)
 		   (frame-char-height frame))))
 	 mpos)
-    (unless (or (not relative)
+    (unless (or (not use-dxdy)
 		(and (setq mpos (mouse-pixel-position))
 		     (eq frame (car mpos)) (cadr mpos) (cddr mpos)))
       (let* ((edges (window-inside-pixel-edges (frame-first-window frame)))
@@ -388,15 +461,15 @@ Example:
     (x-show-tip string frame
 		`((border-width . ,pos-tip-border-width)
 		  (internal-border-width . ,pos-tip-internal-border-width)
-		  ,@(and (not relative) `((left . ,ax)
+		  ,@(and (not use-dxdy) `((left . ,ax)
 					  (top . ,ay)))
 		  (font . ,(frame-parameter frame 'font))
 		  ,@(and spacing `((line-spacing . ,spacing)))
 		  ,@(and (stringp fg) `((foreground-color . ,fg)))
 		  ,@(and (stringp bg) `((background-color . ,bg))))
 		(and timeout (> timeout 0) timeout)
-		(and relative (- rx (cadr mpos)))
-		(and relative (- ry (cddr mpos))))
+		(and use-dxdy (- rx (cadr mpos)))
+		(and use-dxdy (- ry (cddr mpos))))
     (if (and timeout (<= timeout 0))
 	(pos-tip-cancel-timer))
     (cons rx ry)))
@@ -574,6 +647,55 @@ See also `pos-tip-show-no-propertize'."
 
 (defalias 'pos-tip-hide 'x-hide-tip
   "Hide pos-tip's tooltip.")
+
+(defun pos-tip-calibrate-frame-offset (&optional frame)
+  "Return coordinates of FRAME orign relative to the top left corner of
+the FRAME extent, like (LEFT . TOP). The return value is recorded to
+`pos-tip-frame-offset'.
+
+Note that this function does't correctly work for X frame and Emacs 22."
+  (setq pos-tip-frame-offset nil)
+  (let* ((window (frame-first-window frame))
+	 (delete-frame-functions
+	  '((lambda (frame)
+	      (if (equal (frame-parameter frame 'name) "tooltip")
+		  (setq pos-tip-frame-offset
+			(cons (eval (frame-parameter frame 'left))
+			      (eval (frame-parameter frame 'top))))))))
+	 (pos-tip-border-width 0)
+	 (pos-tip-internal-border-width 1)
+	 (rpos (pos-tip-show ""
+			     '(nil . (frame-parameter frame 'background-color))
+			     (window-start window) window
+			     nil nil 'relative nil 0)))
+    (sit-for 0)
+    (pos-tip-hide)
+    (and pos-tip-frame-offset
+	 (setq pos-tip-frame-offset
+	       (cons (- (car pos-tip-frame-offset)
+			(car rpos)
+			(eval (frame-parameter frame 'left)))
+		     (- (cdr pos-tip-frame-offset)
+			(cdr rpos)
+			(eval (frame-parameter frame 'top))))))))
+
+(defun pos-tip-w32-max-width-height (&optional keep-maximize)
+  (interactive)
+  ;; Maximize frame
+  (w32-send-sys-command 61488)
+  (sit-for 0)
+  (let ((offset (pos-tip-calibrate-frame-offset)))
+    (prog1
+	(setq pos-tip-w32-saved-max-width-height
+	      (cons (frame-pixel-width)
+		    (+ (frame-pixel-height)
+		       (- (cdr offset) (car offset)))))
+      (if (interactive-p)
+	  (message "%S" pos-tip-w32-saved-max-width-height))
+      (unless keep-maximize
+	;; Restore frame
+	(w32-send-sys-command 61728)))))
+
 
 (provide 'pos-tip)
 
