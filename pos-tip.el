@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.2.0.7")
+(defconst pos-tip-version "0.2.0.8")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -474,9 +474,9 @@ Example:
     (unless (or (not use-dxdy)
 		(and (setq mpos (mouse-pixel-position))
 		     (eq frame (car mpos)) (cadr mpos) (cddr mpos)))
-      (let* ((edges (window-inside-pixel-edges (frame-first-window frame)))
-	     (mx (car edges))
-	     (my (cadr edges)))
+      (let* ((edges (window-inside-pixel-edges (cadr (window-list))))
+	     (mx (ash (+ (pop edges) (cadr edges)) -1))
+	     (my (ash (+ (pop edges) (cadr edges)) -1)))
 	(set-mouse-pixel-position frame mx my)))
     (and pixel-width pixel-height
 	 (setq mpos (pos-tip-avoid-mouse rx (+ rx pixel-width)
