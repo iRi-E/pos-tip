@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.2.0.6")
+(defconst pos-tip-version "0.2.0.7")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -31,9 +31,8 @@
 ;; is not easy. This program provides such function to be used by other
 ;; frontend programs.
 
-;; This program is tested on GNU Emacs 22, 23.
-
-;; *** Note that this program can work only under X window system. ***
+;; This program is tested on GNU Emacs 22, 23 under X window system and
+;; Emacs 23 for MS-Windows.
 
 ;;
 ;; Installation:
@@ -45,13 +44,29 @@
 ;;
 ;;   (require 'pos-tip)
 ;;
-;; We can display a tooltip at POS in WINDOW by following:
+;; To use the full features of this program on MS-Windows,
+;; put the additional setting in .emacs file:
 ;;
-;;   (pos-tip-show "foo bar" '(FG-COLOR . BG-COLOR) POS WINDOW)
+;;   (pos-tip-w32-max-width-height)
 ;;
-;; Here, '(FG-COLOR . BG-COLOR), POS and WINDOW can be omitted, means
-;; use default colors, current position and selected window, respectively.
+;; or
 ;;
+;;   (pos-tip-w32-max-width-height t)
+
+;;
+;; Examples:
+;;
+;; We can display a tooltip at the current position by the following:
+;;
+;;   (pos-tip-show "foo bar")
+;;
+;; If you'd like to specify the tooltip color, use an expression as:
+;;
+;;   (pos-tip-show "foo bar" '("white" . "red"))
+;;
+;; Here, "white" and "red" are the foreground color and background
+;; color, respectively.
+
 
 ;;; History:
 ;; 2010-03-23  S. Irie
@@ -171,8 +186,10 @@ The value is nil if Emacs is using a text-only terminal.
 FRAME defaults to the currently selected frame."
   (cond
    ((fboundp 'window-system)
-    (window-system frame)) ; Emacs 23
+    ;; Emacs 23
+    (window-system frame))
    (frame
+    ;; Emacs 22
     (if (fboundp 'with-selected-frame)
 	(with-selected-frame frame
 	  window-system)
@@ -194,6 +211,8 @@ is used for non-X graphical environment.")
 (defun pos-tip-frame-top-left-coordinates (&optional frame)
   "Return the pixel coordinates of FRAME as a cons cell (LEFT . TOP),
 which are relative to top left corner of screen.
+
+Return nil if failing to acquire the coordinates.
 
 If FRAME is omitted, use selected-frame.
 
@@ -234,12 +253,14 @@ Users can also get the frame coordinates by referring the variable
   "Non-nil indicates the latest result of `pos-tip-compute-pixel-position'
 was upper than the location specified by the arguments.")
 
-(defvar pos-tip-w32-saved-max-width-height nil)
+(defvar pos-tip-w32-saved-max-width-height nil
+  "Display pixel size effective for showing tooltip in MS-Windows desktop.
+This doesn't include the taskbar area, so isn't same as actual display size.")
 
 (defun pos-tip-compute-pixel-position
   (&optional pos window pixel-width pixel-height frame-coordinates dx dy)
-  "Return the screen pixel position of POS in WINDOW as a cons cell (X . Y).
-Its values show the coordinates of lower left corner of the character.
+  "Return pixel position of POS in WINDOW like (X . Y), which indicates
+the absolute or relative coordinates of bottom left corner of the object.
 
 Omitting POS and WINDOW means use current position and selected window,
 respectively.
@@ -251,21 +272,24 @@ the tooltip won't disappear by sticking out of the display. By referring
 the variable `pos-tip-upperside-p' after calling this function, user can
 examine whether the tooltip will be located above the specified position.
 
-If FRAME-COORDINATES is omitted, automatically obtain the absolute
+If FRAME-COORDINATES is omitted or nil, automatically obtain the absolute
 coordinates of the top left corner of frame which WINDOW is on. Here,
 `top left corner of frame' represents the origin of `window-pixel-edges'
-and its coordinates are essential for calculating the return value. If
-non-nil, specifies the frame location as a cons cell like (LEFT . TOP).
-This option makes the calculations slightly faster, but can be used only
-when it's clear that frame is in the specified position. Users can get the
-latest values of frame location for using in the next call by referring the
-variable `pos-tip-saved-frame-coordinates' just after calling this function.
+and its coordinates are essential for calculating the return value as an
+absolute coordinates. If a cons cell like (LEFT . TOP), specifies the frame
+absolute location and makes the calculation slightly faster, but can be
+used only when it's clear that frame is in the specified position. Users
+can get the latest values of frame location for using in the next call by
+referring the variable `pos-tip-saved-frame-coordinates' just after calling
+this function. Otherwise, FRAME-COORDINATES `relative' means return pixel
+coordinates of the object relative to the top left corner of the frame.
+This is the same effect as `pos-tip-use-relative-coordinates' is non-nil.
 
 DX specifies horizontal offset in pixel.
 
-DY specifies vertical offset in pixel. Omitting DY means use the height of
-object at POS and adjust the coordinates so that tooltip won't hide the
-object."
+DY specifies vertical offset in pixel. This makes the calculations done
+without considering the height of object at POS, so the object might be
+hidden by the tooltip."
   (let* ((frame (window-frame (or window (selected-window))))
 	 (w32-frame (eq (pos-tip-window-system frame) 'w32))
 	 (relative (or pos-tip-use-relative-coordinates
@@ -615,21 +639,24 @@ tooltip automatically.
 
 WIDTH, if non-nil, specifies the width of filling each paragraph.
 
-If FRAME-COORDINATES is omitted, automatically obtain the absolute
+If FRAME-COORDINATES is omitted or nil, automatically obtain the absolute
 coordinates of the top left corner of frame which WINDOW is on. Here,
 `top left corner of frame' represents the origin of `window-pixel-edges'
-and its coordinates are essential for calculating the return value. If
-non-nil, specifies the frame location as a cons cell like (LEFT . TOP).
-This option makes the calculations slightly faster, but can be used only
-when it's clear that frame is in the specified position. Users can get the
-latest values of frame location for using in the next call by referring the
-variable `pos-tip-saved-frame-coordinates' just after calling this function.
+and its coordinates are essential for calculating the return value as an
+absolute coordinates. If a cons cell like (LEFT . TOP), specifies the frame
+absolute location and makes the calculation slightly faster, but can be
+used only when it's clear that frame is in the specified position. Users
+can get the latest values of frame location for using in the next call by
+referring the variable `pos-tip-saved-frame-coordinates' just after calling
+this function. Otherwise, FRAME-COORDINATES `relative' means return pixel
+coordinates of the object relative to the top left corner of the frame.
+This is the same effect as `pos-tip-use-relative-coordinates' is non-nil.
 
 DX specifies horizontal offset in pixel.
 
-DY specifies vertical offset in pixel. Omitting DY means use the height of
-object at POS and show tooltip at appropriate location not to hide the
-object.
+DY specifies vertical offset in pixel. This makes the calculations done
+without considering the height of object at POS, so the object might be
+hidden by the tooltip.
 
 See also `pos-tip-show-no-propertize'."
   (if width
@@ -680,6 +707,13 @@ Note that this function does't correctly work for X frame and Emacs 22."
 			(eval (frame-parameter frame 'top))))))))
 
 (defun pos-tip-w32-max-width-height (&optional keep-maximize)
+  "Maximize the currently selected frame temporarily and set
+`pos-tip-w32-saved-max-width-height' the effective display size in order
+to become possible to calculate the absolute location of tooltip.
+
+KEEP-MAXIMIZE non-nil means leave the frame maximized.
+
+Note that this function is usable only in Emacs 23 for MS-Windows."
   (interactive)
   ;; Maximize frame
   (w32-send-sys-command 61488)
