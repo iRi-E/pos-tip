@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.2.0.10")
+(defconst pos-tip-version "0.2.0.11")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -275,14 +275,14 @@ examine whether the tooltip will be located above the specified position.
 If FRAME-COORDINATES is omitted or nil, automatically obtain the absolute
 coordinates of the top left corner of frame which WINDOW is on. Here,
 `top left corner of frame' represents the origin of `window-pixel-edges'
-and its coordinates are essential for calculating the return value as an
-absolute coordinates. If a cons cell like (LEFT . TOP), specifies the frame
-absolute location and makes the calculation slightly faster, but can be
-used only when it's clear that frame is in the specified position. Users
-can get the latest values of frame location for using in the next call by
-referring the variable `pos-tip-saved-frame-coordinates' just after calling
-this function. Otherwise, FRAME-COORDINATES `relative' means return pixel
-coordinates of the object relative to the top left corner of the frame.
+and its coordinates are essential for calculating the return value as
+absolute coordinates. If a cons cell like (LEFT . TOP), specifies the
+frame absolute location and makes the calculation slightly faster, but can
+be used only when it's clear that frame is in the specified position. Users
+can get the latest values of frame coordinates for using in the next call
+by referring the variable `pos-tip-saved-frame-coordinates' just after
+calling this function. Otherwise, FRAME-COORDINATES `relative' means return
+pixel coordinates of the object relative to the top left corner of the frame.
 This is the same effect as `pos-tip-use-relative-coordinates' is non-nil.
 
 DX specifies horizontal offset in pixel.
@@ -643,15 +643,16 @@ WIDTH, if non-nil, specifies the width of filling each paragraph.
 If FRAME-COORDINATES is omitted or nil, automatically obtain the absolute
 coordinates of the top left corner of frame which WINDOW is on. Here,
 `top left corner of frame' represents the origin of `window-pixel-edges'
-and its coordinates are essential for calculating the return value as an
-absolute coordinates. If a cons cell like (LEFT . TOP), specifies the frame
+and its coordinates are essential for calculating the absolute coordinates
+of the tooltip. If a cons cell like (LEFT . TOP), specifies the frame
 absolute location and makes the calculation slightly faster, but can be
 used only when it's clear that frame is in the specified position. Users
-can get the latest values of frame location for using in the next call by
-referring the variable `pos-tip-saved-frame-coordinates' just after calling
-this function. Otherwise, FRAME-COORDINATES `relative' means return pixel
-coordinates of the object relative to the top left corner of the frame.
-This is the same effect as `pos-tip-use-relative-coordinates' is non-nil.
+can get the latest values of frame coordinates for using in the next call
+by referring the variable `pos-tip-saved-frame-coordinates' just after
+calling this function. Otherwise, FRAME-COORDINATES `relative' means use
+the pixel coordinates relative to the top left corner of the frame for
+displaying the tooltip. This is the same effect as
+`pos-tip-use-relative-coordinates' is non-nil.
 
 DX specifies horizontal offset in pixel.
 
