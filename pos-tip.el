@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.2.0.12")
+(defconst pos-tip-version "0.3.0")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -69,6 +69,12 @@
 
 
 ;;; History:
+;; 2010-03-30  S. Irie
+;;         * Added support for MS-Windows
+;;         * Added option `pos-tip-use-relative-coordinates'
+;;         * Bug fixes
+;;         * Version 0.3.0
+;;
 ;; 2010-03-23  S. Irie
 ;;         * Changed argument WORD-WRAP to JUSTIFY
 ;;         * Added optional argument SQUEEZE
