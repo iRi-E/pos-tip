@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.2.0.11")
+(defconst pos-tip-version "0.2.0.12")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -47,11 +47,11 @@
 ;; To use the full features of this program on MS-Windows,
 ;; put the additional setting in .emacs file:
 ;;
-;;   (pos-tip-w32-max-width-height)   ; Maximize temporarily
+;;   (pos-tip-w32-max-width-height)   ; Maximize frame temporarily
 ;;
 ;; or
 ;;
-;;   (pos-tip-w32-max-width-height t) ; Leave maximized
+;;   (pos-tip-w32-max-width-height t) ; Keep frame maximized
 
 ;;
 ;; Examples:
