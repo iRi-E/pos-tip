@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.2.0.9")
+(defconst pos-tip-version "0.2.0.10")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -479,7 +479,8 @@ Example:
 	     (my (ash (+ (pop edges) (cadr edges)) -1)))
 	(set-mouse-pixel-position frame mx my)))
     (and pixel-width pixel-height
-	 (setq mpos (pos-tip-avoid-mouse rx (+ rx pixel-width)
+	 (setq mpos (pos-tip-avoid-mouse rx (+ rx pixel-width
+					       (if w32-frame 3 0))
 					 ry (+ ry pixel-height)
 					 frame)))
     (x-show-tip string frame
