@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.2.0.8")
+(defconst pos-tip-version "0.2.0.9")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -47,11 +47,11 @@
 ;; To use the full features of this program on MS-Windows,
 ;; put the additional setting in .emacs file:
 ;;
-;;   (pos-tip-w32-max-width-height)
+;;   (pos-tip-w32-max-width-height)   ; Maximize temporarily
 ;;
 ;; or
 ;;
-;;   (pos-tip-w32-max-width-height t)
+;;   (pos-tip-w32-max-width-height t) ; Leave maximized
 
 ;;
 ;; Examples:
@@ -163,8 +163,8 @@
   "Default background color of pos-tip's tooltip.")
 
 (defvar pos-tip-tab-width nil
-  "Tab width used by `pos-tip-split-string' and `pos-tip-fill-string'.
-nil means use default value of `tab-width'.")
+  "Tab width used for `pos-tip-split-string' and `pos-tip-fill-string'
+to expand tab characters. nil means use default value of `tab-width'.")
 
 (defvar pos-tip-use-relative-coordinates nil
   "Non-nil means tooltip location is calculated as a coordinates
