@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.3.0")
+(defconst pos-tip-version "0.3.0.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -476,6 +476,7 @@ Example:
 			  (x-display-pixel-height))
 		      border)
 		   (frame-char-height frame))))
+	 default-frame-alist
 	 mpos)
     (unless (or (not use-dxdy)
 		(and (setq mpos (mouse-pixel-position))
