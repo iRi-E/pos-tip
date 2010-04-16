@@ -4,7 +4,7 @@
 
 ;; Author: S. Irie
 ;; Keywords: Tooltip
-;; Version: 0.1.0.2
+;; Version: 0.1.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -38,9 +38,13 @@
 ;;     ad-do-it))
 
 ;; History:
+;; 2010-04-16  S. Irie
+;;         * Changed `popup-pos-tip' not to fill paragraph unless exceeding :width
+;;         * Version 0.1.1
+;;
 ;; 2010-03-29  S. Irie
-;;         * Version 0.1.0
 ;;         * First release
+;;         * Version 0.1.0
 
 ;;; Code:
 
