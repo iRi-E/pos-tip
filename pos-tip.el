@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.3.2.1")
+(defconst pos-tip-version "0.3.3")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -69,6 +69,10 @@
 
 
 ;;; History:
+;; 2010-04-16  S. Irie
+;;         * Changed `pos-tip-show' not to fill paragraph unless exceeding WIDTH
+;;         * Version 0.3.3
+;;
 ;; 2010-04-08  S. Irie
 ;;         * Bug fix
 ;;         * Version 0.3.2
