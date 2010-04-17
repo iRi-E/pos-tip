@@ -6,7 +6,8 @@
        "** You didn't specify a function! **" '("red"))
     (pos-tip-show
      (with-temp-buffer
-       (let ((standard-output (current-buffer)))
+       (let ((standard-output (current-buffer))
+             (help-xref-following t))
          (prin1 function)
          (princ " is ")
          (describe-function-1 function)
