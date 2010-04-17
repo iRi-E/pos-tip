@@ -1,3 +1,5 @@
+(require 'pos-tip)
+
 (defun my-describe-function (function)
   "Display the full documentation of FUNCTION (a symbol) in tooltip."
   (interactive (list (function-called-at-point)))
