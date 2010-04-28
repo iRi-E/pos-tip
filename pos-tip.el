@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.3.3")
+(defconst pos-tip-version "0.3.3.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -518,7 +518,7 @@ Example:
 	(pos-tip-cancel-timer))
     (cons rx ry)))
 
-(defun pos-tip-split-string (string &optional width margin justify squeeze)
+(defun pos-tip-split-string (string &optional width margin justify squeeze max-rows)
   "Split STRING into fixed width strings. Return a list of these strings.
 
 WIDTH specifies the width of filling each paragraph. WIDTH nil means use
@@ -533,7 +533,10 @@ to do: `full', `left', `right', `center', or `none'. A value of t means handle
 each paragraph as specified by its text properties. Omitting JUSTIFY means
 don't perform justification, word wrap and kinsoku shori (禁則処理).
 
-SQUEEZE nil means leave whitespaces other than line breaks untouched."
+SQUEEZE nil means leave whitespaces other than line breaks untouched.
+
+MAX-ROWS, if given, specifies maximum number of elements of return value.
+The elements exceeding this number are discarded."
   (with-temp-buffer
     (let* ((tab-width (or pos-tip-tab-width tab-width))
 	   (fill-column (or width (frame-width)))
@@ -560,9 +563,11 @@ SQUEEZE nil means leave whitespaces other than line breaks untouched."
 				  (setq line (substring line (length row))))))))
 		 (< (point) (point-max))
 	       (beginning-of-line 2)))
-      (nreverse rows))))
+      (nreverse (if max-rows
+		    (last rows max-rows)
+		  rows)))))
 
-(defun pos-tip-fill-string (string &optional width margin justify squeeze)
+(defun pos-tip-fill-string (string &optional width margin justify squeeze max-height)
   "Fill each of the paragraphs in STRING.
 
 WIDTH specifies the width of filling each paragraph. WIDTH nil means use
@@ -577,7 +582,10 @@ to do: `full', `left', `right', `center', or `none'. A value of t means handle
 each paragraph as specified by its text properties. Omitting JUSTIFY means
 don't perform justification, word wrap and kinsoku shori (禁則処理).
 
-SQUEEZE nil means leave whitespaces other than line breaks untouched."
+SQUEEZE nil means leave whitespaces other than line breaks untouched.
+
+MAX-HEIGHT, if given, specifies maximum number of rows. The rows exceeding
+this number are discarded."
   (if justify
       (with-temp-buffer
 	(let* ((tab-width (or pos-tip-tab-width tab-width))
@@ -588,9 +596,12 @@ SQUEEZE nil means leave whitespaces other than line breaks untouched."
 	  (insert string)
 	  (untabify (point-min) (point-max))
 	  (fill-region (point-min) (point-max) justify (not squeeze))
-	  (buffer-string)))
+	  (if max-height
+	      (buffer-substring (goto-char (point-min))
+				(line-end-position max-height))
+	    (buffer-string))))
     (mapconcat 'identity
-	       (pos-tip-split-string string width margin)
+	       (pos-tip-split-string string width margin nil nil max-height)
 	       "\n")))
 
 (defun pos-tip-string-width-height (string)
