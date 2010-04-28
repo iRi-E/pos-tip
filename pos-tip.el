@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.3.3.1")
+(defconst pos-tip-version "0.3.3.2")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -604,6 +604,24 @@ this number are discarded."
 	       (pos-tip-split-string string width margin nil nil max-height)
 	       "\n")))
 
+(defun pos-tip-truncate-string (string width height)
+  "Truncate each line of STRING to WIDTH and discard lines exceeding HEIGHT."
+  (with-temp-buffer
+    (insert string)
+    (goto-char (point-min))
+    (let ((nrow 0)
+	  rows)
+      (while (and (< nrow height)
+		  (prog2
+		      (push (truncate-string-to-width
+			     (buffer-substring (point) (progn (end-of-line) (point)))
+			     width)
+			    rows)
+		      (< (point) (point-max))
+		    (beginning-of-line 2)
+		    (setq nrow (1+ nrow)))))
+      (mapconcat 'identity (nreverse rows) "\n"))))
+
 (defun pos-tip-string-width-height (string)
   "Count columns and rows of STRING. Return a cons cell like (WIDTH . HEIGHT).
 
@@ -692,11 +710,18 @@ hidden by the tooltip.
 
 See also `pos-tip-show-no-propertize'."
   (let ((frame (window-frame (or window (selected-window))))
+	(max-width (1+ (/ (x-display-pixel-width) (frame-char-width))))
+	(max-height (1+ (/ (x-display-pixel-height) (frame-char-height))))
 	(w-h (pos-tip-string-width-height string)))
-    (if (and width
-	     (> (car w-h) width))
-	(setq string (pos-tip-fill-string string width nil 'none)
-	      w-h (pos-tip-string-width-height string)))
+    (cond
+     ((and width
+	   (> (car w-h) width))
+      (setq string (pos-tip-fill-string string width nil 'none nil max-height)
+	    w-h (pos-tip-string-width-height string)))
+     ((or (> (car w-h) max-width)
+	  (> (cdr w-h) max-height))
+      (setq string (pos-tip-truncate-string string max-width max-height)
+	    w-h (pos-tip-string-width-height string))))
     (face-spec-reset-face 'pos-tip-temp)
     (set-face-font 'pos-tip-temp (frame-parameter frame 'font))
     (pos-tip-show-no-propertize
