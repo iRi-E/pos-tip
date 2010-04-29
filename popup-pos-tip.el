@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst popup-pos-tip-version "0.1.1.2")
+(defconst popup-pos-tip-version "0.1.1.3")
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -115,7 +115,9 @@
 
   (unless nowait
     (clear-this-command-keys)
-    (push (read-event prompt) unread-command-events)
+    (unwind-protect
+        (push (read-event prompt) unread-command-events)
+      (pos-tip-hide))
     t))
 
 (defun popup-pos-tip-show-quick-help (menu &optional item &rest args)
