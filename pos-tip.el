@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.3.5.2")
+(defconst pos-tip-version "0.3.6")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -69,6 +69,11 @@
 
 
 ;;; History:
+;; 2010-04-29  S. Irie
+;;         * Modified to avoid byte-compile warning
+;;         * Bug fix
+;;         * Version 0.3.6
+;;
 ;; 2010-04-29  S. Irie
 ;;         * Renamed argument MAX-HEIGHT of `pos-tip-fill-string' to MAX-ROWS
 ;;         * Modified old FSF address
