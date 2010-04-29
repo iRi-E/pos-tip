@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.3.5")
+(defconst pos-tip-version "0.3.5.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -253,23 +253,24 @@ Users can also get the frame coordinates by referring the variable
      ((null winsys)
       (error "text-only frame: %S" frame))
      ((eq winsys 'x)
-      (ignore-errors
-	(with-current-buffer (get-buffer-create " *xwininfo*")
-	  (let ((case-fold-search nil))
-	    (buffer-disable-undo)
-	    (erase-buffer)
-	    (call-process shell-file-name nil t nil shell-command-switch
-			  (concat "xwininfo -id "
-				  (frame-parameter frame 'window-id)))
-	    (goto-char (point-min))
-	    (search-forward "\n  Absolute")
-	    (setq pos-tip-saved-frame-coordinates
-		  (cons (string-to-number (buffer-substring-no-properties
-					   (search-forward "X: ")
-					   (line-end-position)))
-			(string-to-number (buffer-substring-no-properties
-					   (search-forward "Y: ")
-					   (line-end-position)))))))))
+      (condition-case nil
+	  (with-current-buffer (get-buffer-create " *xwininfo*")
+	    (let ((case-fold-search nil))
+	      (buffer-disable-undo)
+	      (erase-buffer)
+	      (call-process shell-file-name nil t nil shell-command-switch
+			    (concat "xwininfo -id "
+				    (frame-parameter frame 'window-id)))
+	      (goto-char (point-min))
+	      (search-forward "\n  Absolute")
+	      (setq pos-tip-saved-frame-coordinates
+		    (cons (string-to-number (buffer-substring-no-properties
+					     (search-forward "X: ")
+					     (line-end-position)))
+			  (string-to-number (buffer-substring-no-properties
+					     (search-forward "Y: ")
+					     (line-end-position)))))))
+	(error nil)))
      (t
       (and (or pos-tip-frame-offset
 	       (pos-tip-calibrate-frame-offset frame))
