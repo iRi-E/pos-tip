@@ -72,6 +72,8 @@
 ;; 2010-04-29  S. Irie
 ;;         * Modified `pos-tip-show' to truncate string exceeding display size
 ;;         * Added function `pos-tip-truncate-string'
+;;         * Added optional argument MAX-ROWS to `pos-tip-split-string'
+;;         * Added optional argument MAX-HEIGHT to `pos-tip-fill-string'
 ;;         * Version 0.3.4
 ;;
 ;; 2010-04-16  S. Irie
