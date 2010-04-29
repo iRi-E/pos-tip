@@ -3,8 +3,10 @@
 ;; Copyright (C) 2010  S. Irie
 
 ;; Author: S. Irie
+;; Maintainer: S. Irie
 ;; Keywords: Tooltip
-;; Version: 0.1.1.1
+
+(defconst popup-pos-tip-version "0.1.1.2")
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
