@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.3.4.2")
+(defconst pos-tip-version "0.3.5")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -69,6 +69,11 @@
 
 
 ;;; History:
+;; 2010-04-29  S. Irie
+;;         * Renamed argument MAX-HEIGHT of `pos-tip-fill-string' to MAX-ROWS
+;;         * Modified old FSF address
+;;         * Version 0.3.5
+;;
 ;; 2010-04-29  S. Irie
 ;;         * Modified `pos-tip-show' to truncate string exceeding display size
 ;;         * Added function `pos-tip-truncate-string'
