@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.3.4")
+(defconst pos-tip-version "0.3.4.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -574,7 +574,7 @@ The elements exceeding this number are discarded."
 		    (last rows max-rows)
 		  rows)))))
 
-(defun pos-tip-fill-string (string &optional width margin justify squeeze max-height)
+(defun pos-tip-fill-string (string &optional width margin justify squeeze max-rows)
   "Fill each of the paragraphs in STRING.
 
 WIDTH specifies the width of filling each paragraph. WIDTH nil means use
@@ -591,7 +591,7 @@ don't perform justification, word wrap and kinsoku shori (禁則処理).
 
 SQUEEZE nil means leave whitespaces other than line breaks untouched.
 
-MAX-HEIGHT, if given, specifies maximum number of rows. The rows exceeding
+MAX-ROWS, if given, specifies maximum number of rows. The rows exceeding
 this number are discarded."
   (if justify
       (with-temp-buffer
@@ -603,12 +603,12 @@ this number are discarded."
 	  (insert string)
 	  (untabify (point-min) (point-max))
 	  (fill-region (point-min) (point-max) justify (not squeeze))
-	  (if max-height
+	  (if max-rows
 	      (buffer-substring (goto-char (point-min))
-				(line-end-position max-height))
+				(line-end-position max-rows))
 	    (buffer-string))))
     (mapconcat 'identity
-	       (pos-tip-split-string string width margin nil nil max-height)
+	       (pos-tip-split-string string width margin nil nil max-rows)
 	       "\n")))
 
 (defun pos-tip-truncate-string (string width height)
