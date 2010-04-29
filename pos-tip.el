@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.3.5.1")
+(defconst pos-tip-version "0.3.5.2")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -787,8 +787,10 @@ KEEP-MAXIMIZE non-nil means leave the frame maximized.
 
 Note that this function is usable only in Emacs 23 for MS-Windows."
   (interactive)
+  (unless (eq window-system 'w32)
+    (error "`pos-tip-w32-max-width-height' can be used only in w32 frame."))
   ;; Maximize frame
-  (w32-send-sys-command 61488)
+  (with-no-warnings (w32-send-sys-command 61488))
   (sit-for 0)
   (let ((offset (pos-tip-calibrate-frame-offset)))
     (prog1
@@ -800,7 +802,7 @@ Note that this function is usable only in Emacs 23 for MS-Windows."
 	  (message "%S" pos-tip-w32-saved-max-width-height))
       (unless keep-maximize
 	;; Restore frame
-	(w32-send-sys-command 61728)))))
+	(with-no-warnings (w32-send-sys-command 61728))))))
 
 
 (provide 'pos-tip)
