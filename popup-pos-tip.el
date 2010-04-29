@@ -4,7 +4,7 @@
 
 ;; Author: S. Irie
 ;; Keywords: Tooltip
-;; Version: 0.1.1
+;; Version: 0.1.1.1
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -93,7 +93,7 @@
                                                 (concat rmargin-str "\n"))
                                      rmargin-str)
                              'face 'pos-tip-temp))
-        width (+ (apply 'max (mapcar 'length rows))
+        width (+ (apply 'max (mapcar 'string-width rows))
                  margin-right)
         height (length rows))
 
