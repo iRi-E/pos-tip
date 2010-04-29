@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst popup-pos-tip-version "0.1.1.3")
+(defconst popup-pos-tip-version "0.1.2")
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -40,6 +40,12 @@
 ;;     ad-do-it))
 
 ;; History:
+;; 2010-04-29  S. Irie
+;;         * Changed `popup-pos-tip' to hide tooltip after waiting key event
+;;         * Fixed incorrect tooltip width for multibyte character string
+;;         * Added constant `popup-pos-tip-version'
+;;         * Version 0.1.2
+;;
 ;; 2010-04-16  S. Irie
 ;;         * Changed `popup-pos-tip' not to fill paragraph unless exceeding :width
 ;;         * Version 0.1.1
