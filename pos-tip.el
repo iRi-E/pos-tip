@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.3.6.1")
+(defconst pos-tip-version "0.3.6.2")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -253,7 +253,7 @@ If FRAME is omitted, use selected-frame.
 
 Users can also get the frame coordinates by referring the variable
 `pos-tip-saved-frame-coordinates' just after calling this function."
-  (let ((winsys (pos-tip-window-system)))
+  (let ((winsys (pos-tip-window-system frame)))
     (cond
      ((null winsys)
       (error "text-only frame: %S" frame))
