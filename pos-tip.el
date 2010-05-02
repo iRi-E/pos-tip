@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.3.6.3")
+(defconst pos-tip-version "0.3.6.4")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -728,7 +728,9 @@ without considering the height of object at POS, so the object might be
 hidden by the tooltip.
 
 See also `pos-tip-show-no-propertize'."
-  (let* ((frame (window-frame (or window (selected-window))))
+  (unless window
+    (setq window (selected-window)))
+  (let* ((frame (window-frame window))
 	 (max-width (1+ (/ (x-display-pixel-width frame)
 			   (frame-char-width frame))))
 	 (max-height (1+ (/ (x-display-pixel-height frame)
@@ -744,7 +746,8 @@ See also `pos-tip-show-no-propertize'."
       (setq string (pos-tip-truncate-string string max-width max-height)
 	    w-h (pos-tip-string-width-height string))))
     (face-spec-reset-face 'pos-tip-temp)
-    (set-face-font 'pos-tip-temp (frame-parameter frame 'font))
+    (with-selected-window window
+      (set-face-font 'pos-tip-temp (frame-parameter frame 'font)))
     (pos-tip-show-no-propertize
      (propertize string 'face 'pos-tip-temp)
      tip-color pos window timeout
