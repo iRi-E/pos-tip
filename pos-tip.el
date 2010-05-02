@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.3.6.4")
+(defconst pos-tip-version "0.3.6.5")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -660,6 +660,16 @@ Example:
 	      height (1+ height)))
       (cons width height))))
 
+(defun pos-tip-x-display-width (&optional frame)
+  "Return maximum column number in tooltip which occupies the full width
+of display. Omitting FRAME means use display that selected frame is in."
+  (1+ (/ (x-display-pixel-width frame) (frame-char-width frame))))
+
+(defun pos-tip-x-display-height (&optional frame)
+  "Return maximum row number in tooltip which occupies the full height
+of display. Omitting FRAME means use display that selected frame is in."
+  (1+ (/ (x-display-pixel-height frame) (frame-char-height frame))))
+
 (defun pos-tip-tooltip-width (width char-width)
   "Calculate tooltip pixel width."
   (+ (* width char-width)
@@ -731,10 +741,8 @@ See also `pos-tip-show-no-propertize'."
   (unless window
     (setq window (selected-window)))
   (let* ((frame (window-frame window))
-	 (max-width (1+ (/ (x-display-pixel-width frame)
-			   (frame-char-width frame))))
-	 (max-height (1+ (/ (x-display-pixel-height frame)
-			    (frame-char-height frame))))
+	 (max-width (pos-tip-x-display-width frame))
+	 (max-height (pos-tip-x-display-height frame))
 	 (w-h (pos-tip-string-width-height string)))
     (cond
      ((and width
