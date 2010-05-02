@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.3.6.2")
+(defconst pos-tip-version "0.3.6.3")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -368,8 +368,8 @@ hidden by the tooltip."
       (setq xmax (car pos-tip-w32-saved-max-width-height)
 	    ymax (cdr pos-tip-w32-saved-max-width-height)))
      (t
-      (setq xmax (x-display-pixel-width)
-	    ymax (x-display-pixel-height))))
+      (setq xmax (x-display-pixel-width frame)
+	    ymax (x-display-pixel-height frame))))
     (setq pos-tip-upperside-p (> (+ y (or pixel-height 0))
 				 ymax))
     (cons (max 0 (min x (- xmax (or pixel-width 0))))
@@ -500,11 +500,11 @@ Example:
 			      (w32-frame
 			       (car pos-tip-w32-saved-max-width-height))
 			      (t
-			       (x-display-pixel-width))))
+			       (x-display-pixel-width frame))))
 			 border)
 		      (frame-char-width frame)))
 		(/ (- (or pixel-height
-			  (x-display-pixel-height))
+			  (x-display-pixel-height frame))
 		      border)
 		   (frame-char-height frame))))
 	 default-frame-alist
@@ -728,10 +728,12 @@ without considering the height of object at POS, so the object might be
 hidden by the tooltip.
 
 See also `pos-tip-show-no-propertize'."
-  (let ((frame (window-frame (or window (selected-window))))
-	(max-width (1+ (/ (x-display-pixel-width) (frame-char-width))))
-	(max-height (1+ (/ (x-display-pixel-height) (frame-char-height))))
-	(w-h (pos-tip-string-width-height string)))
+  (let* ((frame (window-frame (or window (selected-window))))
+	 (max-width (1+ (/ (x-display-pixel-width frame)
+			   (frame-char-width frame))))
+	 (max-height (1+ (/ (x-display-pixel-height frame)
+			    (frame-char-height frame))))
+	 (w-h (pos-tip-string-width-height string)))
     (cond
      ((and width
 	   (> (car w-h) width))
