@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.3.6")
+(defconst pos-tip-version "0.3.6.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -264,7 +264,8 @@ Users can also get the frame coordinates by referring the variable
 	      (buffer-disable-undo)
 	      (erase-buffer)
 	      (call-process shell-file-name nil t nil shell-command-switch
-			    (concat "xwininfo -id "
+			    (format "xwininfo -display %s -id %s"
+				    (frame-parameter frame 'display)
 				    (frame-parameter frame 'window-id)))
 	      (goto-char (point-min))
 	      (search-forward "\n  Absolute")
