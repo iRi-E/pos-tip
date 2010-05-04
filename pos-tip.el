@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.3.6.5")
+(defconst pos-tip-version "0.3.6.6")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -236,12 +236,26 @@ FRAME defaults to the currently selected frame."
    (t
     window-system)))
 
+(defun pos-tip-normalize-natnum (object &optional n)
+  "Return a Nth power of 2 if OBJECT is a positive integer.
+Otherwise return 0. Omitting N means return 1 for a positive integer."
+  (ash (if (and (natnump object) (> object 0)) 1 0)
+       (or n 0)))
+
 (defvar pos-tip-saved-frame-coordinates '(0 . 0)
   "The latest result of `pos-tip-frame-top-left-coordinates'.")
 
 (defvar pos-tip-frame-offset nil
   "The latest result of `pos-tip-calibrate-frame-offset'. This value
 is used for non-X graphical environment.")
+
+(defvar pos-tip-frame-offset-array [nil nil nil nil]
+  "Array of the results of `pos-tip-calibrate-frame-offset'. They are
+recorded only when `pos-tip-frame-top-left-coordinates' is called for a
+non-X but graphical frame.
+
+The 2nd and 4th elements are the values for frames having a menu bar.
+The 3rd and 4th elements are the values for frames having a tool bar.")
 
 (defun pos-tip-frame-top-left-coordinates (&optional frame)
   "Return the pixel coordinates of FRAME as a cons cell (LEFT . TOP),
@@ -278,13 +292,52 @@ Users can also get the frame coordinates by referring the variable
 					     (line-end-position)))))))
 	(error nil)))
      (t
-      (and (or pos-tip-frame-offset
-	       (pos-tip-calibrate-frame-offset frame))
-	   (setq pos-tip-saved-frame-coordinates
-		 (cons (+ (eval (frame-parameter frame 'left))
-			  (car pos-tip-frame-offset))
-		       (+ (eval (frame-parameter frame 'top))
-			  (cdr pos-tip-frame-offset)))))))))
+      (let* ((index (+ (pos-tip-normalize-natnum
+			(frame-parameter frame 'menu-bar-lines) 0)
+		       (pos-tip-normalize-natnum
+			(frame-parameter frame 'tool-bar-lines) 1)))
+	     (offset (or (aref pos-tip-frame-offset-array index)
+			 (aset pos-tip-frame-offset-array index
+			       (pos-tip-calibrate-frame-offset frame)))))
+	(if offset
+	    (setq pos-tip-saved-frame-coordinates
+		  (cons (+ (eval (frame-parameter frame 'left))
+			   (car offset))
+			(+ (eval (frame-parameter frame 'top))
+			   (cdr offset))))))))))
+
+(defun pos-tip-frame-relative-position
+  (frame1 frame2 &optional w32-frame frame-coord1 frame-coord2)
+  "Return the pixel coordinates of FRAME1 relative to FRAME2
+as a cons cell (LEFT . TOP).
+
+W32-FRAME non-nil means both of frames are under `w32' window system.
+
+FRAME-COORD1 and FRAME-COORD2, if given, specify the absolute
+coordinates of FRAME1 and FRAME2, respectively, which make the
+calculations faster if the frames have different heights of menu bars
+and tool bars."
+  (if (and (eq (pos-tip-normalize-natnum
+		(frame-parameter frame1 'menu-bar-lines))
+	       (pos-tip-normalize-natnum
+		(frame-parameter frame2 'menu-bar-lines)))
+	   (or w32-frame
+	       (eq (pos-tip-normalize-natnum
+		    (frame-parameter frame1 'tool-bar-lines))
+		   (pos-tip-normalize-natnum
+		    (frame-parameter frame2 'tool-bar-lines)))))
+      (cons (- (eval (frame-parameter frame1 'left))
+	       (eval (frame-parameter frame2 'left)))
+	    (- (eval (frame-parameter frame1 'top))
+	       (eval (frame-parameter frame2 'top))))
+    (unless frame-coord1
+      (setq frame-coord1 (let (pos-tip-saved-frame-coordinates)
+			   (pos-tip-frame-top-left-coordinates frame1))))
+    (unless frame-coord2
+      (setq frame-coord2 (let (pos-tip-saved-frame-coordinates)
+			   (pos-tip-frame-top-left-coordinates frame2))))
+    (cons (- (car frame-coord1) (car frame-coord2))
+	  (- (cdr frame-coord1) (cdr frame-coord2)))))
 
 (defvar pos-tip-upperside-p nil
   "Non-nil indicates the latest result of `pos-tip-compute-pixel-position'
@@ -389,7 +442,8 @@ hidden by the tooltip."
 in FRAME. Return new mouse position like (FRAME . (X . Y))."
   (unless frame
     (setq frame (selected-frame)))
-  (let* ((mpos (mouse-pixel-position))
+  (let* ((mpos (with-selected-window (frame-selected-window frame)
+		 (mouse-pixel-position)))
 	 (mframe (pop mpos))
 	 (mx (car mpos))
 	 (my (cdr mpos)))
@@ -419,7 +473,8 @@ in FRAME. Return new mouse position like (FRAME . (X . Y))."
 	    (setq my (- top 2)))
 	   (t
 	    (setq my (1+ bottom))))
-	  (set-mouse-pixel-position frame mx my))))
+	  (set-mouse-pixel-position frame mx my)
+	  (sit-for 0.0001))))
     (cons mframe (and mpos (cons mx my)))))
 
 (defun pos-tip-show-no-propertize
@@ -459,7 +514,9 @@ Example:
 \(let ((str (propertize \" foo \\n bar \\n baz \" 'face 'my-tooltip)))
   (put-text-property 6 11 'face 'my-tooltip-highlight str)
   (pos-tip-show-no-propertize str 'my-tooltip))"
-  (let* ((frame (window-frame (or window (selected-window))))
+  (unless window
+    (setq window (selected-window)))
+  (let* ((frame (window-frame window))
 	 (winsys (pos-tip-window-system frame))
 	 (x-frame (eq winsys 'x))
 	 (w32-frame (eq winsys 'w32))
@@ -477,6 +534,7 @@ Example:
 	 (ay (cdr x-y))
 	 (rx (if relative ax (- ax (car pos-tip-saved-frame-coordinates))))
 	 (ry (if relative ay (- ay (cdr pos-tip-saved-frame-coordinates))))
+	 (retval (cons rx ry))
 	 (fg (or (and (facep tip-color)
 		      (face-attribute tip-color :foreground))
 		 (car-safe tip-color)
@@ -507,21 +565,32 @@ Example:
 			  (x-display-pixel-height frame))
 		      border)
 		   (frame-char-height frame))))
-	 default-frame-alist
-	 mpos)
-    (unless (or (not use-dxdy)
-		(and (setq mpos (mouse-pixel-position))
-		     (eq frame (car mpos)) (cadr mpos) (cddr mpos)))
-      (let* ((edges (window-inside-pixel-edges (cadr (window-list))))
-	     (mx (ash (+ (pop edges) (cadr edges)) -1))
-	     (my (ash (+ (pop edges) (cadr edges)) -1)))
-	(set-mouse-pixel-position frame mx my)))
+	 (mpos (with-selected-window window (mouse-pixel-position)))
+	 (mframe (car mpos))
+	 default-frame-alist)
+    (if (or relative
+	    (and use-dxdy
+		 (null (cadr mpos))))
+	(unless (and (cadr mpos)
+		     (eq mframe frame))
+	  (let* ((edges (window-inside-pixel-edges (cadr (window-list frame))))
+		 (mx (ash (+ (pop edges) (cadr edges)) -1))
+		 (my (ash (+ (pop edges) (cadr edges)) -1)))
+	    (setq mframe frame)
+	    (set-mouse-pixel-position mframe mx my)
+	    (sit-for 0.0001)))
+      (when (and (cadr mpos)
+		 (not (eq mframe frame)))
+	(let ((rel-coord (pos-tip-frame-relative-position frame mframe w32-frame
+							  frame-coordinates)))
+	  (setq rx (+ rx (car rel-coord))
+		ry (+ ry (cdr rel-coord))))))
     (and pixel-width pixel-height
 	 (setq mpos (pos-tip-avoid-mouse rx (+ rx pixel-width
 					       (if w32-frame 3 0))
 					 ry (+ ry pixel-height)
-					 frame)))
-    (x-show-tip string frame
+					 mframe)))
+    (x-show-tip string mframe
 		`((border-width . ,pos-tip-border-width)
 		  (internal-border-width . ,pos-tip-internal-border-width)
 		  ,@(and (not use-dxdy) `((left . ,ax)
@@ -535,7 +604,7 @@ Example:
 		(and use-dxdy (- ry (cddr mpos))))
     (if (and timeout (<= timeout 0))
 	(pos-tip-cancel-timer))
-    (cons rx ry)))
+    retval))
 
 (defun pos-tip-split-string (string &optional width margin justify squeeze max-rows)
   "Split STRING into fixed width strings. Return a list of these strings.
