@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.3.6.6")
+(defconst pos-tip-version "0.4.0")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -69,6 +69,13 @@
 
 
 ;;; History:
+;; 2010-05-04  S. Irie
+;;         * Added functions:
+;;             `pos-tip-x-display-width', `pos-tip-x-display-height'
+;;             `pos-tip-normalize-natnum', `pos-tip-frame-relative-position'
+;;         * Fixed the supports for multi-displays and multi-frames
+;;         * Version 0.4.0
+;;
 ;; 2010-04-29  S. Irie
 ;;         * Modified to avoid byte-compile warning
 ;;         * Bug fix
