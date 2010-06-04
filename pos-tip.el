@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.4.0.1")
+(defconst pos-tip-version "0.4.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -69,6 +69,10 @@
 
 
 ;;; History:
+;; 2010-06-04  S. Irie
+;;         * Added support for text-scale-mode
+;;         * Version 0.4.1
+;;
 ;; 2010-05-04  S. Irie
 ;;         * Added functions:
 ;;             `pos-tip-x-display-width', `pos-tip-x-display-height'
