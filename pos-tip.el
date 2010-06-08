@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.4.1")
+(defconst pos-tip-version "0.4.1.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -414,21 +414,22 @@ hidden by the tooltip."
 		(cadr (window-pixel-edges window))
 		(cadr x-y)))
 	 (y (+ y0
-	       (or dy
-		   ;; `posn-object-width-height' returns an incorrect value
-		   ;; when the header line is displayed (Emacs bug #4426).
-		   ;; In this case, `frame-char-height' is used substitutively,
-		   ;; but this function doesn't return actual object height.
-		   (and (null header-line-format)
-			(cdr (posn-object-width-height
-			      (posn-at-x-y (max (car x-y) 0) (cadr x-y)))))
-		   (and (boundp 'text-scale-mode-amount)
-			(not (zerop text-scale-mode-amount))
-			(round (* (frame-char-height)
-				  (with-no-warnings
-				    (expt text-scale-mode-step
-					  text-scale-mode-amount)))))
-		   (frame-char-height))))
+	       (with-current-buffer (window-buffer window)
+		 (or dy
+		     ;; `posn-object-width-height' returns an incorrect value
+		     ;; when the header line is displayed (Emacs bug #4426).
+		     ;; In this case, `frame-char-height' is used substitutively,
+		     ;; but this function doesn't return actual object height.
+		     (and (null header-line-format)
+			  (cdr (posn-object-width-height
+				(posn-at-x-y (max (car x-y) 0) (cadr x-y) window))))
+		     (and (boundp 'text-scale-mode-amount)
+			  (not (zerop text-scale-mode-amount))
+			  (round (* (frame-char-height frame)
+				    (with-no-warnings
+				      (expt text-scale-mode-step
+					    text-scale-mode-amount)))))
+		     (frame-char-height frame)))))
 	 xmax ymax)
     (cond
      (relative
