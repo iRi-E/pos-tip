@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.4.3")
+(defconst pos-tip-version "0.4.3.1")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -412,33 +412,43 @@ hidden by the tooltip."
 			    (setq relative t
 				  pos-tip-use-relative-coordinates t)
 			  '(0 . 0))))
-	 (x-y (or (pos-visible-in-window-p (or pos (window-point window)) window t)
-		  '(0 0)))
+	 (posn (posn-at-point (or pos (window-point window)) window))
+	 (line (cdr (posn-actual-col-row posn)))
+	 (line-height (and line
+			   (or (window-line-height line window)
+			       (and (redisplay t)
+				    (window-line-height line window)))))
+	 (x-y (or (posn-x-y posn)
+		  (let ((geom (pos-visible-in-window-p
+			       (or pos (window-point window)) window t)))
+		    (and geom (cons (car geom) (cadr geom))))
+		  '(0 . 0)))
 	 (x (+ (car frame-coord)
 	       (car (window-inside-pixel-edges window))
 	       (car x-y)
 	       (or dx 0)))
 	 (y0 (+ (cdr frame-coord)
 		(cadr (window-pixel-edges window))
-		(cadr x-y)))
+		(or (nth 2 line-height) (cdr x-y))))
 	 (y (+ y0
-	       (with-current-buffer (window-buffer window)
-		 (or dy
-		     ;; `posn-object-width-height' returns an incorrect value
-		     ;; when the header line is displayed (Emacs bug #4426).
-		     ;; In this case, `frame-char-height' is used substitutively,
-		     ;; but this function doesn't return actual object height.
-		     (and (null header-line-format)
-			  (cdr (posn-object-width-height
-				(posn-at-x-y (max (car x-y) 0) (cadr x-y) window))))
-		     (and (bound-and-true-p text-scale-mode)
-			  (not (zerop (with-no-warnings
-					text-scale-mode-amount)))
-			  (round (* (frame-char-height frame)
-				    (with-no-warnings
-				      (expt text-scale-mode-step
-					    text-scale-mode-amount)))))
-		     (frame-char-height frame)))))
+	       (or dy
+		   (car line-height)
+		   (with-current-buffer (window-buffer window)
+		     (cond
+		      ;; `posn-object-width-height' returns an incorrect value
+		      ;; when the header line is displayed (Emacs bug #4426).
+		      ((and posn
+			    (null header-line-format))
+		       (cdr (posn-object-width-height posn)))
+		      ((and (bound-and-true-p text-scale-mode)
+			    (not (zerop (with-no-warnings
+					  text-scale-mode-amount))))
+		       (round (* (frame-char-height frame)
+				 (with-no-warnings
+				   (expt text-scale-mode-step
+					 text-scale-mode-amount)))))
+		      (t
+		       (frame-char-height frame)))))))
 	 xmax ymax)
     (cond
      (relative
