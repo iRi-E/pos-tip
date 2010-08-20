@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.4.3.1")
+(defconst pos-tip-version "0.4.3.2")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -749,6 +749,7 @@ this number are discarded."
 
 (defun pos-tip-string-width-height (string)
   "Count columns and rows of STRING. Return a cons cell like (WIDTH . HEIGHT).
+The last empty line of STRING is ignored.
 
 Example:
 
@@ -759,7 +760,7 @@ Example:
     (goto-char (point-min))
     (end-of-line)
     (let ((width (current-column))
-	  (height 1))
+	  (height (if (eq (char-before (point-max)) ?\n) 0 1)))
       (while (< (point) (point-max))
 	(end-of-line 2)
 	(setq width (max (current-column) width)
