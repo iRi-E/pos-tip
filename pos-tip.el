@@ -6,7 +6,7 @@
 ;; Maintainer: S. Irie
 ;; Keywords: Tooltip
 
-(defconst pos-tip-version "0.4.4")
+(defconst pos-tip-version "0.4.5")
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -69,6 +69,10 @@
 
 
 ;;; History:
+;; 2010-09-27  S. Irie
+;;         * Simplified implementation of `pos-tip-window-system'
+;;         * Version 0.4.5
+;;
 ;; 2010-08-20  S. Irie
 ;;         * Changed to use `window-line-height' to calculate tooltip position
 ;;         * Changed `pos-tip-string-width-height' to ignore last empty line
