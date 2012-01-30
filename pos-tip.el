@@ -534,7 +534,8 @@ in FRAME. Return new mouse position like (FRAME . (X . Y))."
 (defun pos-tip-show-no-propertize
   (string &optional tip-color pos window timeout pixel-width pixel-height frame-coordinates dx dy)
   "Show STRING in a tooltip at POS in WINDOW.
-Analogous to `pos-tip-show' except don't propertize STRING by `pos-tip' face.
+Analogous to `pos-tip-show' except don't propertize STRING by the frame's
+`default' face and don't calculate tooltip width and height.
 
 PIXEL-WIDTH and PIXEL-HEIGHT specify the size of tooltip, if given. These
 are used to adjust the tooltip position in order that it doesn't disappear by
