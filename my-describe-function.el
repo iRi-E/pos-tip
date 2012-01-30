@@ -9,7 +9,8 @@
     (pos-tip-show
      (with-temp-buffer
        (let ((standard-output (current-buffer))
-             (help-xref-following t))
+             (help-xref-following t)
+             (major-mode 'help-mode)) ; Avoid error in Emacs 24
          (prin1 function)
          (princ " is ")
          (describe-function-1 function)
