@@ -233,12 +233,12 @@
   :type 'integer
   :group 'pos-tip)
 
-(defcustom pos-tip-foreground-color "black"
+(defcustom pos-tip-foreground-color (face-foreground 'tooltip)
   "Default foreground color of pos-tip's tooltip."
   :type 'color
   :group 'pos-tip)
 
-(defcustom pos-tip-background-color "lightyellow"
+(defcustom pos-tip-background-color (face-background 'tooltip)
   "Default background color of pos-tip's tooltip."
   :type 'color
   :group 'pos-tip)
